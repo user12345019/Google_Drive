@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Private Chat with {{ other_user.username }}</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Private Chat with {{ other_user.username }}</h1>
+    <p><a href="/">Back to Group Chat</a></p>
+    <div id="messages">
+        {% for message in messages %}
+            {% if message.sender_id == current_user_id %}
+                <p><strong>You</strong> ({{ message.timestamp }}): {{ message.message_text }}</p>
+            {% else %}
+                <p><strong>{{ other_user.username }}</strong> ({{ message.timestamp }}): {{ message.message_text }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <form method="POST" action="/send_private/{{ other_user.id }}">
+        <input type="text" name="message" required>
+        <input type="submit" value="Send">
+    </form>
+</body>
+</html>
