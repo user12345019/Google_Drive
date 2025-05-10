@@ -1,0 +1,62 @@
+@charset: 'UTF-8';
+
+p, h1, h2, li {
+    color:#953434;
+}
+h1 {
+    text-shadow:white 0px 0px 5px;
+}
+
+html {
+    background-color: #600d27;
+}
+
+
+#title {
+    display: flex;
+    justify-content: center;
+}
+
+#content{
+    display: flex;
+    justify-content: center;
+}
+
+
+
+#messagePlace{
+    width: 80%;
+    height: 15%;
+    margin-right: auto;
+    margin-left: auto;
+    flex: 1;
+    margin-top: auto;
+}
+
+div#users{
+    margin-right: 15px;
+    margin-left: 15px;
+    display:flex;
+    justify-content: center;
+    overflow:scroll;
+    height:500px;
+    width:300px;
+    border:5px solid #293761;
+    background-color:#CADFEE;
+    color:#616b22;
+}
+
+div#messages {
+    margin-right: auto;
+    margin-left: auto;
+    display:flex;
+    flex-direction: column ;
+    justify-content: center;
+    align-items: center;
+    overflow:scroll;
+    height:500px;
+    width: 100%;
+    border:10px solid #293761;
+    background-color:#CADFEE;
+    color:#616b22;
+}
