@@ -1,40 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Home - Google Drive</title>
-    <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png">
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
-</head>
-<body>
-    <h1 id="title">JIOF</h1>
+    <head>
+        <meta charset="UTF-8">
+        <title>Home - Google Drive</title>
+        <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png">
+        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <div id="appContainer">
+            <h1 id="title">JIOF</h1>
+            <div id="content">
+                <div id="users">
+                    <h2>Users</h2>
+                    <ul>
+                        {% for user in users %}
+                        <li><a href="/private_chat/{{ user.id }}">{{ user.username }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div id="mainArea">
+                    <div id="messages">
+                        {% for message in messages %}
+                        <p><strong>{{ message.sender.username }}</strong> ({{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}): {{ message.message_text }}</p>
+                        {% endfor %}
+                    </div>
+                    <form id="form" method="POST" action="/send">
+                        <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required>
+                        <input id="sendButton" type="submit" value="Send" aria-label="Send Message">
+                    </form>
+                </div>
+            </div>
+            <p><a href="{{ url_for('suggestions') }}">Suggestions</a></p>
+            <p><a href="/logout">Logout</a></p>
 
-    <div id="content">
-        <div id="users">
-            <h2>Users</h2>
-            <ul>
-                {% for user in users %}
-                    <li><a href="/private_chat/{{ user.id }}">{{ user.username }}</a></li>
-                {% endfor %}
-            </ul>
         </div>
+        <img id="decoyImage" src="/static/123.png" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:9999;">
+        <script>
+            window.addEventListener('DOMContentLoaded', () => {
+                const msgs = document.getElementById('messages');
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+            window.addEventListener('DOMContentLoaded', () => {
+              const msgs = document.getElementById('messages');
+              function isNearBottom() {
+                return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
+              }
 
-        <div id="messages">
-            {% for message in messages %}
-                <p><strong>{{ message.sender.username }}</strong> ({{ message.timestamp }}): {{ message.message_text }}</p>
-            {% endfor %}
-            <form id="form" method="POST" action="/send">
-                <input id="messagePlace" type="text" name="message" required> <input id="sendButton" type="submit" value="Send">
-            </form>
-        </div>
+              let shouldScroll = isNearBottom();
 
+              const observer = new MutationObserver(() => {
+                if (shouldScroll) {
+                  msgs.scrollTop = msgs.scrollHeight;
+                }
+              });
 
+              observer.observe(msgs, { childList: true });
 
-    </div>
+              msgs.addEventListener('scroll', () => {
+                shouldScroll = isNearBottom();
+              });
+            });
 
-    <p><a href="/logout">Logout</a></p>
+        </script>
+        <script>
+            const root = document.documentElement;
 
+            function toggleAway() {
+              root.classList.toggle('away');
+            }
 
+            document.addEventListener('keydown', function (event) {
+              if (event.ctrlKey && event.key.toLowerCase() === 'i') {
+                event.preventDefault();
+                toggleAway();
+              }
+            });
+        </script>
+        <script>
+            function fetchMessages() {
+                fetch('/get_messages')
+                .then(response => response.json())
+                  .then(data => {
+                    const container = document.getElementById('messages');
+                    container.innerHTML = '';
+                        data.forEach(message => {
+                      const msgElem = document.createElement('p');
+                      msgElem.innerHTML = `<strong>${message.username}</strong> (${message.timestamp}): ${message.text}`;
+                      container.appendChild(msgElem);
+            });
+            });
+            }
 
-</body>
+            setInterval(fetchMessages, 500);
+            fetchMessages();
+        </script>
+    </body>
 </html>
