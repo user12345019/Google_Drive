@@ -1,0 +1,170 @@
+@charset: 'UTF-8';
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Lucida Sans', sans-serif;
+    background-color: #600d27;
+    height: 100vh;
+    color: #CADFEE;
+}
+
+h1, h2, p {
+    color: #953434;
+}
+
+h1 {
+    text-align: center;
+    padding: 20px 0;
+    color: #ffffff;
+    border-bottom: 1px solid #5e0000;
+    text-shadow: white 0px 0px 5px;
+}
+
+.centerBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    width: 500px;
+    height: 400px;
+    background: #953434;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(94, 0, 0, 0.4);
+}
+
+form {
+    padding: 0 60px;
+    box-sizing: border-box;
+}
+
+.txt {
+    position: relative;
+    border-bottom: 2px solid #adadad;
+    margin: 30px 0;
+}
+
+input {
+    width: 100%;
+    padding: 0 5px;
+    height: 40px;
+    font-size: 16px;
+    border: none;
+    background: none;
+    color: #fff;
+    outline: none;
+}
+
+label {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    color: #ddd;
+    transform: translateY(-50%);
+    font-size: 16px;
+    pointer-events: none;
+    transition: 0.5s;
+}
+
+.littleBar {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #616b22;
+}
+
+.txt input:focus ~ label, .txt input:valid ~ label {
+    top: -5px;
+    color: #616b22;
+}
+
+input[type="submit"] {
+    width: 100%;
+    height: 50px;
+    border: none;
+    background-color: #293761;
+    border-radius: 15px;
+    font-size: 16px;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    margin-top: 20px;
+}
+
+input[type="submit"]:hover {
+    background-color: #5e0000;
+    transition: 0.5s;
+}
+
+.signupLink {
+    margin: 30px 0;
+    text-align: center;
+    font-size: 16px;
+    color: #eeeeee;
+}
+
+a {
+    color: #616b22;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+/* STUFFFFFF THAT FIXES STUFF */
+
+
+
+/* Autofill fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: #ffffff !important;
+    background-color: #953434 !important;
+    box-shadow: 0 0 0px 1000px #953434 inset !important;
+}
+
+input:-webkit-autofill ~ label {
+    top: -5px;
+    color: #616b22;
+}
+
+/* Mobile stuff */
+@media (max-width: 600px) {
+    .centerBox {
+        width: 90%;
+        height: auto;
+        padding: 20px 0;
+        transform: translate(-50%, -50%);
+    }
+
+    .centerBox h1 {
+        font-size: 24px;
+        padding: 10px 0;
+    }
+
+    .centerBox form {
+        padding: 0 30px;
+    }
+
+    .txt {
+        margin: 20px 0;
+    }
+
+    input[type="submit"] {
+        height: 45px;
+        font-size: 15px;
+    }
+
+    .signupLink {
+        font-size: 14px;
+    }
+}
