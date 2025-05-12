@@ -94,5 +94,11 @@
             setInterval(fetchMessages, 500);
             fetchMessages();
         </script>
+        <script>
+        const profileButton = document.getElementById('profileButton');
+        const profileMenu = document.getElementById('profileMenu');
+        profileButton.addEventListener('click', e => { e.stopPropagation(); profileMenu.classList.toggle('open'); });
+        document.addEventListener('click', () => { profileMenu.classList.remove('open'); });
+        </script>
     </body>
 </html>
