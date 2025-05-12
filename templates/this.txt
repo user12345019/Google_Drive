@@ -1,0 +1,21 @@
+Put these bottom of body in all documents other than the login/reg pages
+
+<script>
+        const profileButton = document.getElementById('profileButton');
+        const profileMenu = document.getElementById('profileMenu');
+        profileButton.addEventListener('click', e => { e.stopPropagation(); profileMenu.classList.toggle('open'); });
+        document.addEventListener('click', () => { profileMenu.classList.remove('open'); });
+</script>
+
+Put these under the appContainer in all documents other than the login/reg pages
+<div id="profileMenuContainer">
+            <button id="profileButton" aria-label="User Profile">
+                <img class="profile-pic" src="{{ url_for('static', filename=user.avatar or 'avatar.png') }}" alt="{{ user.username }}">
+            </button>
+            <div id="profileMenu">
+                <ul>
+                    <li><a href="/profile/{{ user.id }}">Profile</a></li>
+                    <li><a href="/logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
