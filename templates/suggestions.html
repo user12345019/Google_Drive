@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Suggestions – JIOF</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div id="appContainer">
+    <h1 id="title">Suggestions</h1>
+    <div id="content">
+      <div id="mainArea">
+        <div id="messages">
+        </div>
+        <form id="form" method="POST" action="{{ url_for('send_suggestion') }}">
+          <input id="suggestionPlace" type="text" name="suggestion" placeholder="Type your suggestion..." autocomplete="off">
+          <input id="sendButton" type="submit" value="Send Suggestion">
+        </form>
+      </div>
+    </div>
+    <p>
+      <a href="{{ url_for('chat') }}">← Back to Chat</a> |
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </p>
+  </div>
+
+  <script>
+    const isAdmin = {{ 'true' if is_admin else 'false' }};
+    const msgs = document.getElementById('messages');
+
+    function isNearBottom() {
+      return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 50;
+    }
+    let shouldScroll = true;
+
+    const observer = new MutationObserver(() => {
+      if (shouldScroll) msgs.scrollTop = msgs.scrollHeight;
+    });
+    observer.observe(msgs, { childList: true });
+
+    msgs.addEventListener('scroll', () => {
+      shouldScroll = isNearBottom();
+    });
+
+    function fetchSuggestions() {
+      fetch('{{ url_for("get_suggestions") }}')
+        .then(res => res.json())
+        .then(data => {
+          msgs.innerHTML = '';
+          data.forEach(s => {
+            const p = document.createElement('p');
+            p.style.marginBottom = '0.75rem';
+            let html = `<strong>${s.username}</strong> <em>(${s.timestamp})</em>: ${s.text}`;
+            if (s.completed) {
+              html += ' ✅';
+            } else if (isAdmin) {
+              html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
+            }
+            p.innerHTML = html;
+            msgs.appendChild(p);
+          });
+        });
+    }
+
+    function markComplete(id) {
+      fetch(`/complete_suggestion/${id}`, { method: 'POST' })
+        .then(() => fetchSuggestions());
+    }
+
+    fetchSuggestions();
+    setInterval(fetchSuggestions, 1000);
+  </script>
+</body>
+</html>
