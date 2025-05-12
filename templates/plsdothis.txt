@@ -19,3 +19,19 @@ Put these under the appContainer in all documents other than the login/reg pages
                 </ul>
             </div>
         </div>
+Put these 2 near the bottom b4 the other <script> tags
+<img id="decoyImage" src="/static/123.png" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:9999;">
+<script>
+         const root = document.documentElement;
+
+         function toggleAway() {
+           root.classList.toggle('away');
+         }
+
+         document.addEventListener('keydown', function (event) {
+           if (event.ctrlKey && event.key.toLowerCase() === 'i') {
+             event.preventDefault();
+             toggleAway();
+           }
+         });
+      </script>
