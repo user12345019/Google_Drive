@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <title>Admin Dashboard</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='adminStyles.css') }}">
+      <script src="{{ url_for('static', filename='script.js') }}"></script>
+   </head>
+   <body>
+      <div class="dashboard">
+         <div class="header">
+            <h1>Admin Dashboard</h1>
+            <p><a href="/logout">Logout</a></p>
+         </div>
+         <div class="card">
+            <details>
+               <summary>
+                  <h2>All Users</h2>
+               </summary>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>ID</th>
+                           <th>Username</th>
+                           <th>Password Hash</th>
+                           <th>Actions</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {% for u in users %}
+                        <tr>
+                           <td>{{ u.id }}</td>
+                           <td>{{ u.username }}</td>
+                           <td>{{ u.password_hash }}</td>
+                           <td>
+                              <button class="delete-user" data-user-id="{{ u.id }}">Delete</button>
+                           </td>
+                        </tr>
+                        {% endfor %}
+                     </tbody>
+                  </table>
+               </div>
+            </details>
+         </div>
+         <div class="card">
+            <details>
+               <summary>
+                  <h2>Public Messages</h2>
+               </summary>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>ID</th>
+                           <th>Sender</th>
+                           <th>Message</th>
+                           <th>Timestamp</th>
+                           <th>Action</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {% for m in public_messages %}
+                        <tr>
+                           <td>{{ m.id }}</td>
+                           <td>{{ m.sender }}</td>
+                           <td>{{ m.text }}</td>
+                           <td>{{ m.timestamp }}</td>
+                           <td>
+                              <form action="{{ url_for('delete_public_message', message_id=m.id) }}" method="post">
+                                 <button type="submit">Delete</button>
+                              </form>
+                           </td>
+                        </tr>
+                        {% endfor %}
+                     </tbody>
+                  </table>
+               </div>
+            </details>
+         </div>
+         <div class="card">
+            <details>
+               <summary>
+                  <h2>Private Messages</h2>
+               </summary>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>ID</th>
+                           <th>Sender</th>
+                           <th>Recipient</th>
+                           <th>Message</th>
+                           <th>Timestamp</th>
+                           <th>Action</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {% for pm in private_messages %}
+                        <tr>
+                           <td>{{ pm.id }}</td>
+                           <td>{{ pm.sender }}</td>
+                           <td>{{ pm.recipient }}</td>
+                           <td>{{ pm.text }}</td>
+                           <td>{{ pm.timestamp }}</td>
+                           <td>
+                              <form action="{{ url_for('delete_private_message', message_id=pm.id) }}" method="post">
+                                 <button type="submit">Delete</button>
+                              </form>
+                           </td>
+                        </tr>
+                        {% endfor %}
+                     </tbody>
+                  </table>
+               </div>
+            </details>
+         </div>
+         <div class="card">
+            <details>
+               <summary>
+                  <h2>Suggestion</h2>
+               </summary>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>ID</th>
+                           <th>Sender</th>
+                           <th>Suggestion</th>
+                           <th>Timestamp</th>
+                           <th>Action</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {% for s in suggestions %}
+                        <tr>
+                           <td>{{ s.id }}</td>
+                           <td>{{ s.sender }}</td>
+                           <td>{{ s.text }}</td>
+                           <td>{{ s.timestamp }}</td>
+                           <td>
+                              <form action="{{ url_for('delete_suggestion', suggestion_id=s.id) }}" method="post">
+                                 <button type="submit">Delete</button>
+                              </form>
+                           </td>
+                        </tr>
+                        {% endfor %}
+                     </tbody>
+                  </table>
+               </div>
+            </details>
+         </div>
+      </div>
+      <script>
+         document.addEventListener('DOMContentLoaded', () => {
+           // Handle "Delete User" buttons
+           document.querySelectorAll('.delete-user').forEach(btn => {
+             btn.addEventListener('click', async (e) => {
+               e.preventDefault();
+
+               if (!confirm('Are you sure you want to delete this user?')) {
+                 return;
+               }
+
+               const userId = btn.dataset.userId;
+               try {
+                 const res = await fetch('/admin/delete_user', {
+                   method: 'POST',
+                   headers: {
+                     'Content-Type': 'application/json'
+                   },
+                   body: JSON.stringify({ user_id: userId })
+                 });
+
+                 const data = await res.json();
+                 if (data.success) {
+                   // Remove the user’s row from the table
+                   btn.closest('tr').remove();
+                 } else {
+                   alert('Error deleting user: ' + data.error);
+                 }
+               } catch (err) {
+                 console.error('Error:', err);
+                 alert('An error occurred while deleting the user.');
+               }
+             });
+           });
+         });
+      </script>
+   </body>
+</html>
