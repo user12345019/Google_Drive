@@ -9,24 +9,27 @@
   <div id="appContainer">
     <h1 id="title">Suggestions</h1>
     <div id="content">
+        <div id="users">
+               <h2>Back</h2>
+               <ul>
+                  <li><a href="/">← Group Chat</a></li>
+               </ul>
+            </div>
       <div id="mainArea">
         <div id="messages">
         </div>
-        <form id="form" method="POST" action="{{ url_for('send_suggestion') }}">
+        <form id="form" method="POST">
           <input id="suggestionPlace" type="text" name="suggestion" placeholder="Type your suggestion..." autocomplete="off">
           <input id="sendButton" type="submit" value="Send Suggestion">
         </form>
       </div>
     </div>
-    <p>
-      <a href="{{ url_for('chat') }}">← Back to Chat</a> |
-      <a href="{{ url_for('logout') }}">Logout</a>
-    </p>
   </div>
 
   <script>
     const isAdmin = {{ 'true' if is_admin else 'false' }};
     const msgs = document.getElementById('messages');
+    let isUpdating = false; // Prevent polling during updates
 
     function isNearBottom() {
       return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 50;
@@ -42,33 +45,86 @@
       shouldScroll = isNearBottom();
     });
 
-    function fetchSuggestions() {
-      fetch('{{ url_for("get_suggestions") }}')
-        .then(res => res.json())
-        .then(data => {
-          msgs.innerHTML = '';
-          data.forEach(s => {
-            const p = document.createElement('p');
-            p.style.marginBottom = '0.75rem';
-            let html = `<strong>${s.username}</strong> <em>(${s.timestamp})</em>: ${s.text}`;
-            if (s.completed) {
-              html += ' ✅';
-            } else if (isAdmin) {
+    function renderSuggestions(data) {
+      const currentIds = new Set(Array.from(msgs.children).map(p => parseInt(p.dataset.id)));
+      const newIds = new Set(data.map(s => s.id));
+
+      // Remove outdated suggestions
+      Array.from(msgs.children).forEach(p => {
+        if (!newIds.has(parseInt(p.dataset.id))) {
+          p.remove();
+        }
+      });
+
+      // Add or update suggestions
+      data.forEach(s => {
+        if (!currentIds.has(s.id)) {
+          const p = document.createElement('p');
+          p.dataset.id = s.id; // Store ID for tracking
+          p.style.marginBottom = '0.75rem';
+          let html = `<strong>${s.username}</strong> <em>(${s.timestamp})</em>: ${s.text}`;
+          if (s.completed) {
+            html += ' ✅';
+          } else if (s.inProgress) {
+            if (isAdmin) {
               html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
             }
-            p.innerHTML = html;
-            msgs.appendChild(p);
-          });
-        });
+            html += ' 🔜';
+          } else if (isAdmin) {
+            html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
+            html += ` <button onclick="markInProgress(${s.id})">Mark in Progress</button>`;
+          }
+          p.innerHTML = html;
+          msgs.appendChild(p);
+        }
+      });
+
+      if (shouldScroll) msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function fetchSuggestions() {
+      if (isUpdating) return; // Skip polling during updates
+      fetch('{{ url_for("get_suggestions") }}')
+        .then(res => res.json())
+        .then(data => renderSuggestions(data));
     }
 
     function markComplete(id) {
+      isUpdating = true;
       fetch(`/complete_suggestion/${id}`, { method: 'POST' })
-        .then(() => fetchSuggestions());
+        .then(() => fetchSuggestions())
+        .finally(() => isUpdating = false);
     }
 
+    function markInProgress(id) {
+      isUpdating = true;
+      fetch(`/inProgress_suggestion/${id}`, { method: 'POST' })
+        .then(() => fetchSuggestions())
+        .finally(() => isUpdating = false);
+    }
+
+    // Handle form submission via AJAX
+    document.getElementById('form').addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent default form submission
+      const suggestionInput = document.getElementById('suggestionPlace');
+      const suggestionText = suggestionInput.value.trim();
+      if (!suggestionText) return;
+
+      isUpdating = true;
+      fetch('{{ url_for("send_suggestion") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `suggestion=${encodeURIComponent(suggestionText)}`
+      })
+        .then(() => {
+          suggestionInput.value = ''; // Clear input
+          return fetchSuggestions(); // Refresh suggestions
+        })
+        .finally(() => isUpdating = false);
+    });
+
     fetchSuggestions();
-    setInterval(fetchSuggestions, 1000);
+    setInterval(fetchSuggestions, 10); // Increased to 500ms
   </script>
 </body>
 </html>
