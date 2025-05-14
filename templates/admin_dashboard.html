@@ -153,7 +153,7 @@
       </div>
       <script>
          document.addEventListener('DOMContentLoaded', () => {
-           // Handle "Delete User" buttons
+           
            document.querySelectorAll('.delete-user').forEach(btn => {
              btn.addEventListener('click', async (e) => {
                e.preventDefault();
@@ -174,7 +174,7 @@
 
                  const data = await res.json();
                  if (data.success) {
-                   // Remove the user’s row from the table
+                   
                    btn.closest('tr').remove();
                  } else {
                    alert('Error deleting user: ' + data.error);
