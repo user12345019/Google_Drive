@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8" />
         <title>Home - Google Drive</title>
-        <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png">
-        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+        <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png" />
+        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet" />
     </head>
     <body>
         <div id="appContainer">
+            <div id="profileMenuContainer">
+                <button id="profileButton" aria-label="User Profile">
+                    <img class="profile-pic" src="{{ url_for('static', filename=user.avatar or 'avatar.png') }}" alt="{{ user.username }}" />
+                </button>
+                <div id="profileMenu">
+                    <ul>
+                        <li><a href="/profile/{{ user.id }}">Profile</a></li>
+                        <li><a href="/logout">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
             <h1 id="title">JIOF</h1>
             <div id="content">
                 <div id="users">
@@ -25,74 +36,84 @@
                         {% endfor %}
                     </div>
                     <form id="form" method="POST" action="/send">
-                        <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required>
-                        <input id="sendButton" type="submit" value="Send" aria-label="Send Message">
+                        <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required />
+                        <input id="sendButton" type="submit" value="Send" aria-label="Send Message" />
                     </form>
                 </div>
             </div>
             <p><a href="{{ url_for('suggestions') }}">Suggestions</a></p>
             <p><a href="/logout">Logout</a></p>
-
         </div>
-        <img id="decoyImage" src="/static/123.png" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:9999;">
-        <script>
-            window.addEventListener('DOMContentLoaded', () => {
-                const msgs = document.getElementById('messages');
-                msgs.scrollTop = msgs.scrollHeight;
-            });
-            window.addEventListener('DOMContentLoaded', () => {
-              const msgs = document.getElementById('messages');
-              function isNearBottom() {
-                return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
-              }
-
-              let shouldScroll = isNearBottom();
-
-              const observer = new MutationObserver(() => {
-                if (shouldScroll) {
-                  msgs.scrollTop = msgs.scrollHeight;
-                }
-              });
-
-              observer.observe(msgs, { childList: true });
-
-              msgs.addEventListener('scroll', () => {
-                shouldScroll = isNearBottom();
-              });
-            });
-
-        </script>
+        <img id="decoyImage" src="/static/123.png" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
         <script>
             const root = document.documentElement;
 
             function toggleAway() {
-              root.classList.toggle('away');
+                root.classList.toggle("away");
             }
 
-            document.addEventListener('keydown', function (event) {
-              if (event.ctrlKey && event.key.toLowerCase() === 'i') {
-                event.preventDefault();
-                toggleAway();
-              }
+            document.addEventListener("keydown", function (event) {
+                if (event.ctrlKey && event.key.toLowerCase() === "i") {
+                    event.preventDefault();
+                    toggleAway();
+                }
             });
         </script>
         <script>
+            window.addEventListener("DOMContentLoaded", () => {
+                const msgs = document.getElementById("messages");
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+            window.addEventListener("DOMContentLoaded", () => {
+                const msgs = document.getElementById("messages");
+                function isNearBottom() {
+                    return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
+                }
+
+                let shouldScroll = isNearBottom();
+
+                const observer = new MutationObserver(() => {
+                    if (shouldScroll) {
+                        msgs.scrollTop = msgs.scrollHeight;
+                    }
+                });
+
+                observer.observe(msgs, { childList: true });
+
+                msgs.addEventListener("scroll", () => {
+                    shouldScroll = isNearBottom();
+                });
+            });
+        </script>
+
+        <script>
             function fetchMessages() {
-                fetch('/get_messages')
-                .then(response => response.json())
-                  .then(data => {
-                    const container = document.getElementById('messages');
-                    container.innerHTML = '';
-                        data.forEach(message => {
-                      const msgElem = document.createElement('p');
-                      msgElem.innerHTML = `<strong>${message.username}</strong> (${message.timestamp}): ${message.text}`;
-                      container.appendChild(msgElem);
-            });
-            });
+                fetch("/get_messages")
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const container = document.getElementById("messages");
+                        container.innerHTML = "";
+                        data.forEach((message) => {
+                            const msgElem = document.createElement("p");
+                            msgElem.innerHTML = `<strong>${message.username}</strong> (${message.timestamp}): ${message.text}`;
+                            container.appendChild(msgElem);
+                        });
+                    });
             }
 
             setInterval(fetchMessages, 500);
             fetchMessages();
+        </script>
+        <script>
+            const profileButton = document.getElementById("profileButton");
+            const profileMenu = document.getElementById("profileMenu");
+            profileButton.addEventListener("click", (e) => {
+                e.stopPropagation();
+                profileMenu.classList.toggle("open");
+            });
+            document.addEventListener("click", () => {
+                profileMenu.classList.remove("open");
+            });
         </script>
     </body>
 </html>

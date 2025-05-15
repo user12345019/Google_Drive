@@ -188,7 +188,7 @@ def admin_dashboard():
             sender_alias.username.label('sender'),
             recipient_alias.username.label('recipient'),
             PrivateMessage.message_text.label('text'),
-            PrivateMessage.timestamp.label('timestamp')
+            PrivateMessage.timestamp .label('timestamp')
         )
         .join(sender_alias, PrivateMessage.sender_id == sender_alias.id)
         .join(recipient_alias, PrivateMessage.recipient_id == recipient_alias.id)
