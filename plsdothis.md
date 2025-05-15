@@ -1,6 +1,8 @@
-# Finished these 4 u bruh
+# Basically Suggestions
 
 Pull request any other features you need in here.
+
+Had copoilt give feature suggestions... 
 
 ---
 
