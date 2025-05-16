@@ -7,7 +7,6 @@ from sqlalchemy.orm import aliased
 import pytz
 import os
 
-
 timezone = pytz.timezone('America/Chicago')
 
 
