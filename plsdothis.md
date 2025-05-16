@@ -1,4 +1,4 @@
-#Pls Just make a pull req when u update any code, or branch b4 starting, if ur editing instead of commit, create pull req
+# Pls Just make a pull req when u update any code, or branch b4 starting, if ur editing instead of commit, create pull req
 
 ---
 
