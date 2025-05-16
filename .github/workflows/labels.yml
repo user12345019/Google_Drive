@@ -8,46 +8,50 @@ jobs:
   label_by_project_column:
     runs-on: ubuntu-latest
     steps:
-      - name: Get project card details
+      - name: Label issue based on column
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const columnId = context.payload.project_card.column_id;
-            const cardId = context.payload.project_card.id;
-            const cardContentUrl = context.payload.project_card.content_url;
+            try {
+              const card = context.payload.project_card;
 
-            if (!cardContentUrl) {
-              console.log('Card is note, not issue. Skipping.');
-              return;
+              if (!card.content_url) {
+                console.log('Card is a note, not an issue. Skipping.');
+                return;
+              }
+
+              const contentRes = await fetch(card.content_url, {
+                headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` }
+              });
+              const content = await contentRes.json();
+
+              const projectId = card.project_id;
+              const columnId = card.column_id;
+
+              const columns = await github.rest.projects.listColumns({
+                project_id: projectId
+              });
+
+              const column = columns.data.find(c => c.id === columnId);
+              if (!column) {
+                console.log('Column not found.');
+                return;
+              }
+
+              const labelName = column.name;
+
+              // Optionally remove existing project-related labels here
+
+              // Add label
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: content.number,
+                labels: [labelName]
+              });
+
+              console.log(`Added label '${labelName}' to issue #${content.number}`);
+            } catch (error) {
+              console.error(`Error labeling issue: ${error.message}`);
             }
-
-            const contentRes = await fetch(cardContentUrl, {
-              headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` }
-            });
-            const content = await contentRes.json();
-
-            // Get all project columns
-            const project_id = context.payload.project_card.project_id;
-            const columns = await github.rest.projects.listColumns({
-              project_id
-            });
-
-            const column = columns.data.find(c => c.id === columnId);
-
-            if (!column) {
-              console.log('Column not found');
-              return;
-            }
-
-            const labelName = column.name;
-
-            // Add label to issue
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: content.number,
-              labels: [labelName]
-            });
-
-            console.log(`Added label ${labelName} to issue #${content.number}`);
