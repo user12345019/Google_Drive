@@ -10,7 +10,7 @@
         <div id="appContainer">
             <div id="profileMenuContainer">
                 <button id="profileButton" aria-label="User Profile">
-                    <img class="profile-pic" src="{{ url_for('static', filename=user.avatar or 'avatar.png') }}" alt="{{ user.username }}" />
+                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
                 </button>
                 <div id="profileMenu">
                     <ul>
@@ -113,10 +113,21 @@
             });           document.addEventListener("click", () => {
                 profileMenu.classList.remove("open");
             });
-        const profileButton = document.getElementById('profileButton');
-        const profileMenu = document.getElementById('profileMenu');
-        profileButton.addEventListener('click', e => { e.stopPropagation(); profileMenu.classList.toggle('open'); });
-        document.addEventListener('click', () => { profileMenu.classList.remove('open'); });
-        </script>
+            const profileButton = document.getElementById('profileButton');
+            const profileMenu = document.getElementById('profileMenu');
+            profileButton.addEventListener('click', e => { e.stopPropagation(); profileMenu.classList.toggle('open'); });
+            document.addEventListener('click', () => { profileMenu.classList.remove('open'); });
+            </script>
+            <script>
+                const profileButton = document.getElementById("profileButton");
+                const profileMenu = document.getElementById("profileMenu");
+                profileButton.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    profileMenu.classList.toggle("open");
+                });
+                document.addEventListener("click", () => {
+                    profileMenu.classList.remove("open");
+                });
+            </script>
     </body>
 </html>
