@@ -360,6 +360,16 @@ def get_notifications():
     } for n in notifications]
     return jsonify(data)
 
+@app.route('/get_users')
+@login_required
+def get_users():
+    users = User.query.filter(User.id != session['user_id']).all()
+    data = [{
+        'id': user.id,
+        'username': user.username
+    } for user in users]
+    return jsonify(data)
+
 @app.route('/mark_notifications_read', methods=['POST'])
 @login_required
 def mark_notifications_read():
@@ -375,4 +385,4 @@ def handle_join(data):
     join_room(f'user_{user_id}')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, port=5001)

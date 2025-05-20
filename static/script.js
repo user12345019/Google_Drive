@@ -115,9 +115,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
   }
-
+  function fetchUsersList() {
+    fetch("/get_users")
+      .then((response) => response.json())
+      .then((data) => {
+        const usersList = document.getElementById("users").querySelector("ul");
+        usersList.innerHTML = "";
+        data.forEach((user) => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = `/private_chat/${user.id}`;
+          a.textContent = user.username;
+          li.appendChild(a);
+          usersList.appendChild(li);
+        });
+      });
+  }
   // Initialize notifications and start socket
   fetchNotifications();
+  setInterval(fetchNotifications, 1000);
+  fetchUsersList();
+  setInterval(fetchUsersList, 1000);
 
   const currentUserId = window.currentUserId || null;
   window.socket = io({ transports: ["websocket", "polling"] });
