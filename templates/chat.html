@@ -10,7 +10,7 @@
         <div id="appContainer">
             <div id="profileMenuContainer">
                 <button id="profileButton" aria-label="User Profile">
-                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
                 </button>
                 <div id="profileMenu">
                     <ul>
@@ -46,47 +46,56 @@
         </div>
         <img id="decoyImage" src="/static/123.png" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
         <script>
+            // Toggle away class
             const root = document.documentElement;
-
+            
             function toggleAway() {
                 root.classList.toggle("away");
             }
-
+            
             document.addEventListener("keydown", function (event) {
                 if (event.ctrlKey && event.key.toLowerCase() === "i") {
                     event.preventDefault();
                     toggleAway();
                 }
             });
-        </script>
-        <script>
+            
+            // Message scroll and observer setup
             window.addEventListener("DOMContentLoaded", () => {
                 const msgs = document.getElementById("messages");
                 msgs.scrollTop = msgs.scrollHeight;
-            });
-            window.addEventListener("DOMContentLoaded", () => {
-                const msgs = document.getElementById("messages");
+            
                 function isNearBottom() {
                     return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
                 }
-
+            
                 let shouldScroll = isNearBottom();
-
+            
                 const observer = new MutationObserver(() => {
                     if (shouldScroll) {
                         msgs.scrollTop = msgs.scrollHeight;
                     }
                 });
-
+            
                 observer.observe(msgs, { childList: true });
-
+            
                 msgs.addEventListener("scroll", () => {
                     shouldScroll = isNearBottom();
                 });
             });
-        </script>
-
-        <script>
+            
+            // Profile menu toggle
+            const profileButton = document.getElementById("profileButton");
+            const profileMenu = document.getElementById("profileMenu");
+            profileButton.addEventListener("click", (e) => {
+                e.stopPropagation();
+                profileMenu.classList.toggle("open");
+            });
+            document.addEventListener("click", () => {
+                profileMenu.classList.remove("open");
+            });
+            
+            // Fetch messages
             function fetchMessages() {
                 fetch("/get_messages")
                     .then((response) => response.json())
@@ -100,34 +109,9 @@
                         });
                     });
             }
-
+            
             setInterval(fetchMessages, 500);
             fetchMessages();
         </script>
-        <script>
-            const profileButton = document.getElementById("profileButton");
-            const profileMenu = document.getElementById("profileMenu");
-            profileButton.addEventListener("click", (e) => {
-                e.stopPropagation();
-                profileMenu.classList.toggle("open");
-            });           document.addEventListener("click", () => {
-                profileMenu.classList.remove("open");
-            });
-            const profileButton = document.getElementById('profileButton');
-            const profileMenu = document.getElementById('profileMenu');
-            profileButton.addEventListener('click', e => { e.stopPropagation(); profileMenu.classList.toggle('open'); });
-            document.addEventListener('click', () => { profileMenu.classList.remove('open'); });
-            </script>
-            <script>
-                const profileButton = document.getElementById("profileButton");
-                const profileMenu = document.getElementById("profileMenu");
-                profileButton.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    profileMenu.classList.toggle("open");
-                });
-                document.addEventListener("click", () => {
-                    profileMenu.classList.remove("open");
-                });
-            </script>
     </body>
 </html>

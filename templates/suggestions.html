@@ -2,14 +2,16 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Home - Google Drive</title>
+        <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png" />
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     </head>
     <body>
         <div id="appContainer">
             <div id="profileMenuContainer">
                 <button id="profileButton" aria-label="User Profile">
-                  <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
                 </button>
                 <div id="profileMenu">
                     <ul>
@@ -37,6 +39,7 @@
         </div>
         <img id="decoyImage" src="/static/123.png" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
         <script>
+            // Toggle away class
             const root = document.documentElement;
 
             function toggleAway() {
@@ -49,108 +52,8 @@
                     toggleAway();
                 }
             });
-        </script>
-        <script>
-            const isAdmin = {{ 'true' if is_admin else 'false' }};
-            const msgs = document.getElementById('messages');
-            let isUpdating = false; // Prevent polling during updates
 
-            function isNearBottom() {
-              return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 50;
-            }
-            let shouldScroll = true;
-
-            const observer = new MutationObserver(() => {
-              if (shouldScroll) msgs.scrollTop = msgs.scrollHeight;
-            });
-            observer.observe(msgs, { childList: true });
-
-            msgs.addEventListener('scroll', () => {
-              shouldScroll = isNearBottom();
-            });
-
-            function renderSuggestions(data) {
-              const currentIds = new Set(Array.from(msgs.children).map(p => parseInt(p.dataset.id)));
-              const newIds = new Set(data.map(s => s.id));
-
-              // Remove outdated suggestions
-              Array.from(msgs.children).forEach(p => {
-                if (!newIds.has(parseInt(p.dataset.id))) {
-                  p.remove();
-                }
-              });
-
-              // Add or update suggestions
-              data.forEach(s => {
-                if (!currentIds.has(s.id)) {
-                  const p = document.createElement('p');
-                  p.dataset.id = s.id; // Store ID for tracking
-                  p.style.marginBottom = '0.75rem';
-                  let html = `<strong>${s.username}</strong> <em>(${s.timestamp})</em>: ${s.text}`;
-                  if (s.completed) {
-                    html += ' ✅';
-                  } else if (s.inProgress) {
-                    if (isAdmin) {
-                      html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
-                    }
-                    html += ' 🔜';
-                  } else if (isAdmin) {
-                    html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
-                    html += ` <button onclick="markInProgress(${s.id})">Mark in Progress</button>`;
-                  }
-                  p.innerHTML = html;
-                  msgs.appendChild(p);
-                }
-              });
-
-              if (shouldScroll) msgs.scrollTop = msgs.scrollHeight;
-            }
-
-            function fetchSuggestions() {
-              if (isUpdating) return; // Skip polling during updates
-              fetch('{{ url_for("get_suggestions") }}')
-                .then(res => res.json())
-                .then(data => renderSuggestions(data));
-            }
-
-            function markComplete(id) {
-              isUpdating = true;
-              fetch(`/complete_suggestion/${id}`, { method: 'POST' })
-                .then(() => fetchSuggestions())
-                .finally(() => isUpdating = false);
-            }
-
-            function markInProgress(id) {
-              isUpdating = true;
-              fetch(`/inProgress_suggestion/${id}`, { method: 'POST' })
-                .then(() => fetchSuggestions())
-                .finally(() => isUpdating = false);
-            }
-
-            // Handle form submission via AJAX
-            document.getElementById('form').addEventListener('submit', function(e) {
-              e.preventDefault(); // Prevent default form submission
-              const suggestionInput = document.getElementById('suggestionPlace');
-              const suggestionText = suggestionInput.value.trim();
-              if (!suggestionText) return;
-
-              isUpdating = true;
-              fetch('{{ url_for("send_suggestion") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `suggestion=${encodeURIComponent(suggestionText)}`
-              })
-                .then(() => {
-                  suggestionInput.value = ''; // Clear input
-                  return fetchSuggestions(); // Refresh suggestions
-                })
-                .finally(() => isUpdating = false);
-            });
-
-            fetchSuggestions();
-            setInterval(fetchSuggestions, 10); // Increased to 500ms
-        </script>
-        <script>
+            // Profile menu toggle
             const profileButton = document.getElementById("profileButton");
             const profileMenu = document.getElementById("profileMenu");
             profileButton.addEventListener("click", (e) => {
@@ -160,20 +63,104 @@
             document.addEventListener("click", () => {
                 profileMenu.classList.remove("open");
             });
-      </script>
-      <script>
-        const profileButton = document.getElementById("profileButton");
-        const profileMenu = document.getElementById("profileMenu");
-        profileButton.addEventListener("click", (e) => {
-            e.stopPropagation();
-            profileMenu.classList.toggle("open");
-        });
-        document.addEventListener("click", () => {
-            profileMenu.classList.remove("open");
-        });
-    </script>
 
-    
-</body>
+            // Suggestions handling
+            const isAdmin = {{ 'true' if is_admin else 'false' }};
+            const msgs = document.getElementById("messages");
+            let isUpdating = false;
 
+            function isNearBottom() {
+                return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 50;
+            }
+
+            let shouldScroll = true;
+
+            const observer = new MutationObserver(() => {
+                if (shouldScroll) msgs.scrollTop = msgs.scrollHeight;
+            });
+            observer.observe(msgs, { childList: true });
+
+            msgs.addEventListener("scroll", () => {
+                shouldScroll = isNearBottom();
+            });
+
+            function renderSuggestions(data) {
+                const currentIds = new Set(Array.from(msgs.children).map(p => parseInt(p.dataset.id)));
+                const newIds = new Set(data.map(s => s.id));
+
+                Array.from(msgs.children).forEach(p => {
+                    if (!newIds.has(parseInt(p.dataset.id))) {
+                        p.remove();
+                    }
+                });
+
+                data.forEach(s => {
+                    if (!currentIds.has(s.id)) {
+                        const p = document.createElement("p");
+                        p.dataset.id = s.id;
+                        p.style.marginBottom = "0.75rem";
+                        let html = `<strong>${s.username}</strong> <em>(${s.timestamp})</em>: ${s.text}`;
+                        if (s.completed) {
+                            html += " ✅";
+                        } else if (s.inProgress) {
+                            if (isAdmin) {
+                                html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
+                            }
+                            html += " 🔜";
+                        } else if (isAdmin) {
+                            html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
+                            html += ` <button onclick="markInProgress(${s.id})">Mark in Progress</button>`;
+                        }
+                        p.innerHTML = html;
+                        msgs.appendChild(p);
+                    }
+                });
+
+                if (shouldScroll) msgs.scrollTop = msgs.scrollHeight;
+            }
+
+            function fetchSuggestions() {
+                if (isUpdating) return;
+                fetch("{{ url_for('get_suggestions') }}")
+                    .then(res => res.json())
+                    .then(data => renderSuggestions(data));
+            }
+
+            function markComplete(id) {
+                isUpdating = true;
+                fetch(`/complete_suggestion/${id}`, { method: "POST" })
+                    .then(() => fetchSuggestions())
+                    .finally(() => isUpdating = false);
+            }
+
+            function markInProgress(id) {
+                isUpdating = true;
+                fetch(`/inProgress_suggestion/${id}`, { method: "POST" })
+                    .then(() => fetchSuggestions())
+                    .finally(() => isUpdating = false);
+            }
+
+            document.getElementById("form").addEventListener("submit", function(e) {
+                e.preventDefault();
+                const suggestionInput = document.getElementById("suggestionPlace");
+                const suggestionText = suggestionInput.value.trim();
+                if (!suggestionText) return;
+
+                isUpdating = true;
+                fetch("{{ url_for('send_suggestion') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `suggestion=${encodeURIComponent(suggestionText)}`
+                })
+                    .then(() => {
+                        suggestionInput.value = "";
+                        return fetchSuggestions();
+                    })
+                    .finally(() => isUpdating = false);
+            });
+
+            fetchSuggestions();
+            setInterval(fetchSuggestions, 500);
+        </script>
+    </body>
 </html>
