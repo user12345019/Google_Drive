@@ -198,6 +198,73 @@ html.away #decoyImage {
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
+#profileMenuContainer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#profileButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #CADFEE;
+    transition: transform 0.2s;
+}
+
+#profileButton:hover .profile-pic {
+    transform: scale(1.1);
+}
+
+#profileMenu {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background-color: #CADFEE;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 150px;
+    z-index: 1000;
+}
+
+#profileMenu.open {
+    display: block;
+}
+
+#profileMenu ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+}
+
+#profileMenu li {
+    padding: 8px 12px;
+    transition: background-color 0.3s;
+}
+
+#profileMenu li:hover {
+    background-color: #f0f8ff;
+}
+
+#profileMenu a {
+    color: #293761;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#profileMenu a:hover {
+    text-decoration: underline;
+}
+
 
 @media (max-width: 600px) {
     #content {

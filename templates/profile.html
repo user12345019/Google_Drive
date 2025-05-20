@@ -3,13 +3,12 @@
     <head>
         <meta charset="UTF-8" />
         <title>{{ user.username }}’s Profile</title>
-        <link rel="stylesheet" href="styles.css" />
-    </head>
+        <link href="{{ url_for('static', filename='profileStyles.css') }}" rel="stylesheet">
     <body>
         <div id="appContainer">
             <div id="profileMenuContainer">
                 <button id="profileButton" aria-label="User Profile">
-                    <img class="profile-pic" src="{{ url_for('static', filename=user.avatar or 'avatar.png') }}" alt="{{ user.username }}" />
+                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
                 </button>
                 <div id="profileMenu">
                     <ul>
@@ -22,7 +21,7 @@
             <h1 id="title">Profile</h1>
             <div id="content" class="profile-content">
                 <div class="profile-card">
-                    <img class="profile-pic" src="{{ url_for('static', filename=user.avatar or 'avatar.png') }}" alt="{{ user.username }}" />
+                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
                     <h2>{{ user.username }}</h2>
                     <p><strong>User ID:</strong> {{ user.id }}</p>
                 </div>
