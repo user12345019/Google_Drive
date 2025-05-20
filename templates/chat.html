@@ -18,7 +18,7 @@
         <button id="profileButton" aria-label="User Profile">
           <img
             class="profile-pic"
-            src="{{ url_for('static', filename=user.avatar or 'avatar.png') }}"
+            src="{{ url_for('static', filename='123.png') }}"
             alt="{{ user.username }}"
           />
         </button>
@@ -86,6 +86,7 @@
       "
     />
     <script>
+      // Toggle away class
       const root = document.documentElement;
 
       function toggleAway() {
@@ -98,14 +99,12 @@
           toggleAway();
         }
       });
-    </script>
-    <script>
+
+      // Message scroll and observer setup
       window.addEventListener("DOMContentLoaded", () => {
         const msgs = document.getElementById("messages");
         msgs.scrollTop = msgs.scrollHeight;
-      });
-      window.addEventListener("DOMContentLoaded", () => {
-        const msgs = document.getElementById("messages");
+
         function isNearBottom() {
           return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
         }
@@ -124,9 +123,19 @@
           shouldScroll = isNearBottom();
         });
       });
-    </script>
 
-    <script>
+      // Profile menu toggle
+      const profileButton = document.getElementById("profileButton");
+      const profileMenu = document.getElementById("profileMenu");
+      profileButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        profileMenu.classList.toggle("open");
+      });
+      document.addEventListener("click", () => {
+        profileMenu.classList.remove("open");
+      });
+
+      // Fetch messages
       function fetchMessages() {
         fetch("/get_messages")
           .then((response) => response.json())
@@ -143,26 +152,6 @@
 
       setInterval(fetchMessages, 500);
       fetchMessages();
-    </script>
-    <script>
-      const profileButton = document.getElementById("profileButton");
-      const profileMenu = document.getElementById("profileMenu");
-      profileButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        profileMenu.classList.toggle("open");
-      });
-      document.addEventListener("click", () => {
-        profileMenu.classList.remove("open");
-      });
-      const profileButton = document.getElementById("profileButton");
-      const profileMenu = document.getElementById("profileMenu");
-      profileButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        profileMenu.classList.toggle("open");
-      });
-      document.addEventListener("click", () => {
-        profileMenu.classList.remove("open");
-      });
     </script>
   </body>
 </html>
