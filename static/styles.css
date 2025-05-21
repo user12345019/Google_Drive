@@ -8,6 +8,7 @@ body {
   background-color: #600d27;
   height: 100vh;
   color: #cadfee;
+  overflow: hidden;
 }
 
 h1,
@@ -112,7 +113,7 @@ html.away #decoyImage {
 }
 
 #messages {
-  height: 500px;
+  height: 450px;
   border-radius: 10px;
   background-color: #cadfee;
   color: #cadfee;

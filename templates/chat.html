@@ -3,31 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <title>Home - Google Drive</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
-
-    <link
-      rel="icon"
-      href="https://www.computerhope.com/issues/pictures/google-drive-logo.png"
-    />
-    <link
-      href="{{ url_for('static', filename='styles.css') }}"
-      rel="stylesheet"
-    />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png" />
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   </head>
   <body>
     <div id="appContainer">
       <div id="profileMenuContainer">
         <button id="profileButton" aria-label="User Profile">
-          <img
-            class="profile-pic"
-            src="{{ url_for('static', filename='123.png') }}"
-            alt="{{ user.username }}"
-          />
+          <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}"/>
         </button>
         <div id="profileMenu">
           <ul>
@@ -74,40 +59,17 @@
             {% endfor %}
           </div>
           <form id="form" method="POST" action="/send">
-            <input
-              id="messagePlace"
-              type="text"
-              name="message"
-              placeholder="Type your message..."
-              required
-            />
-            <input
-              id="sendButton"
-              type="submit"
-              value="Send"
-              aria-label="Send Message"
-            />
+            <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required autofocus />
+            <input id="sendButton" type="submit" value="Send" aria-label="Send Message" />
           </form>
         </div>
       </div>
       <p><a href="{{ url_for('suggestions') }}">Suggestions</a></p>
-      <p><a href="/logout">Logout</a></p>
     </div>
     <img
       id="decoyImage"
       src="/static/123.png"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover;
-        z-index: 9999;
-      "
-    />
-
+      style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
     <script>
       const currentUserId = {{ user.id }};
     </script>

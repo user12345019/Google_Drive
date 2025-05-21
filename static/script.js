@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // === Shared Variables and Utilities ===
+  let notificationCounts = {};
   const root = document.documentElement;
   const msgs = document.getElementById("messages");
   const currentUserId = window.currentUserId || null;
@@ -54,9 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // === Notifications ===
-  // … keep everything above the Notifications section the same …
-
-  // === Notifications ===
   const notificationButton = document.getElementById("notificationButton");
   const notificationMenu = document.getElementById("notificationMenu");
   const notificationBadge = document.getElementById("badge");
@@ -74,7 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("/get_notifications")
       .then((res) => res.json())
       .then((data) => {
-        // rebuild the list
         notificationsList.innerHTML = "";
         data.forEach((notification) => {
           const li = document.createElement("li");
@@ -86,54 +83,73 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             li.textContent = notification.content;
           }
+          if (notification.read) {
+            li.classList.add("read");
+          }
           notificationsList.appendChild(li);
         });
-        // update the badge & title
-        notificationCount = data.length;
+        notificationCount = data.filter((n) => !n.read).length;
         notificationBadge.textContent = notificationCount;
         updateTitleWithNotifications(notificationCount);
-
-        // show/hide badge and status
         if (notificationCount > 0) {
           notificationBadge.classList.add("visible");
-          notificationStatus.textContent = `You have ${notificationCount} new notification${
-            notificationCount > 1 ? "s" : ""
-          }`;
+          notificationStatus.textContent = `You have ${notificationCount} new notification${notificationCount > 1 ? "s" : ""}`;
         } else {
           notificationBadge.classList.remove("visible");
           notificationStatus.textContent = "No notifications";
         }
+  
+        const counts = {};
+        data.forEach((notification) => {
+          if (notification.type === "private_message" && notification.data && !notification.read) {
+            const senderId = notification.data.sender_id;
+            if (senderId) {
+              counts[senderId] = (counts[senderId] || 0) + 1;
+            }
+          }
+        });
+        notificationCounts = counts;
       });
   }
-
+  
   if (notificationButton) {
     notificationButton.addEventListener("click", (e) => {
       e.stopPropagation();
       const opening = !notificationMenu.classList.contains("open");
       notificationMenu.classList.toggle("open");
-
       if (opening) {
-        // We’re opening the menu — don’t auto‐mark read here.
-        // If you want to mark them read when the user actually clicks "Clear All", do it in that handler.
+        fetch("/mark_notifications_read", {
+          method: "POST",
+        }).then(() => {
+          fetchNotifications();
+        });
       }
     });
   }
-
+  document.addEventListener("click", (e) => {
+    if (notificationMenu.classList.contains("open")) {
+      if (!notificationMenu.contains(e.target)) {
+        notificationMenu.classList.remove("open");
+      }
+    }
+  });
   if (clearNotifications) {
     clearNotifications.addEventListener("click", () => {
-      notificationsList.innerHTML = "";
-      notificationCount = 0;
-      updateTitleWithNotifications(0);
-      notificationBadge.textContent = "0";
-      notificationBadge.classList.remove("visible");
-      notificationStatus.textContent = "No notifications";
-
-      // Mark on the server that we've read/cleared them
-      fetch("/mark_notifications_read", {
+      fetch("/clear_notifications", {
         method: "POST",
+      }).then(() => {
+        notificationsList.innerHTML = "";
+        notificationCount = 0;
+        notificationBadge.textContent = "0";
+        notificationBadge.classList.remove("visible");
+        notificationStatus.textContent = "No notifications";
+        notificationCounts = {};
+        updateTitleWithNotifications(0);
       });
     });
   }
+  
+
 
   // Only fetch new notifications when the tray is closed, every 5 seconds
   setInterval(() => {
@@ -160,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // === Private Messages ===
-  // === Private Messages ===
   const privateMessagesContainer = document.getElementById("messages");
 
   // Fetch initial private messages when you load the chat
@@ -182,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
   }
-
+  
   // Listen for new private messages in real-time with SocketIO
   socket.on("new_private_message", (msg) => {
     if (msg.sender_id === otherUserId || msg.recipient_id === otherUserId) {
@@ -201,9 +216,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Load initial messages (no polling needed after this)
-  if (otherUserId) {
-    fetchPrivateMessages();
-  }
+  
+  
 
   // === Users List ===
   function fetchUsersList() {
@@ -218,6 +232,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const a = document.createElement("a");
             a.href = `/private_chat/${user.id}`;
             a.textContent = user.username;
+            const count = notificationCounts[user.id] || 0;
+            if (count > 0) {
+              a.textContent += ` (${count})`;
+            }
             li.appendChild(a);
             usersList.appendChild(li);
           });
@@ -242,8 +260,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Initialization ===
+  fetchPrivateMessages();
+  setInterval(fetchPrivateMessages, 100); 
   fetchNotifications();
-  setInterval(fetchNotifications, 1000);
+  setInterval(fetchNotifications, 1000); 
   fetchUsersList();
-  setInterval(fetchUsersList, 1000);
+  setInterval(fetchUsersList, 1000); 
 });

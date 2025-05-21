@@ -18,11 +18,14 @@ loading wayyyy to long...
 
 ## New Stuff???
 
-make so auto focus on the txt enter
+make so can change profile pic
+
+make so can view people profile from click on mane
 
 make so fits on one screen, no scroll
 
 make so show who active
+
 
 ## File Sharing
 

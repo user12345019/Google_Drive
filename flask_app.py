@@ -350,15 +350,23 @@ def profile(user_id):
 @app.route('/get_notifications')
 @login_required
 def get_notifications():
-    notifications = Notification.query.filter_by(user_id=session['user_id'], read=False).order_by(Notification.timestamp.desc()).all()
+    notifications = Notification.query.filter_by(user_id=session['user_id']).order_by(Notification.timestamp.desc()).all()
     data = [{
         'id': n.id,
         'type': n.type,
         'content': n.content,
         'data': json.loads(n.data) if n.data else None,
-        'timestamp': n.timestamp.strftime('%Y-%m-%d %H:%M')
+        'timestamp': n.timestamp.strftime('%Y-%m-%d %H:%M'),
+        'read': n.read
     } for n in notifications]
     return jsonify(data)
+
+@app.route('/clear_notifications', methods=['POST'])
+@login_required
+def clear_notifications():
+    Notification.query.filter_by(user_id=session['user_id']).delete()
+    db.session.commit()
+    return ('', 204)
 
 @app.route('/get_users')
 @login_required
