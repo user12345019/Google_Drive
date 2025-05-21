@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const root = document.documentElement;
   const msgs = document.getElementById("messages");
   const currentUserId = window.currentUserId || null;
-  const otherUserId = window.otherUserId || null; // For private chat
+  const otherUserId = window.otherUserId || null; 
+  
 
   // Utility Functions
   function escapeHtml(text) {
@@ -65,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateTitleWithNotifications(count) {
     document.title =
-      count > 0 ? `(${count}) Home - Google Drive` : `Home - Google Drive`;
+      count > 0 ? `Home (${count}) - Google Drive` : `Home - Google Drive`;
   }
 
   function fetchNotifications() {
@@ -258,6 +259,26 @@ document.addEventListener("DOMContentLoaded", () => {
       shouldScroll = isNearBottom();
     });
   }
+  const profileButton = document.getElementById("profileButton");
+const profileMenu = document.getElementById("profileMenu");
+
+if (profileButton) {
+  profileButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    profileMenu.classList.toggle("open");
+
+    // Inject Dashboard link only if isAdmin and it doesn't already exist
+    if (window.isAdmin && !document.getElementById("adminLink")) {
+      const dashboardLi = document.createElement("li");
+      const dashboardLink = document.createElement("a");
+      dashboardLink.href = "/admin";
+      dashboardLink.textContent = "Dashboard";
+      dashboardLink.id = "adminLink";
+      dashboardLi.appendChild(dashboardLink);
+      profileMenu.querySelector("ul").prepend(dashboardLi);
+    }
+  });
+}
 
   // === Initialization ===
   fetchPrivateMessages();

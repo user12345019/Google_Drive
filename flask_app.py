@@ -393,4 +393,4 @@ def handle_join(data):
     join_room(f'user_{user_id}')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5001)
+    socketio.run(app, debug=True, port=5002)
