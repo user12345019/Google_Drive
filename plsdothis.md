@@ -16,13 +16,13 @@ the mark as complete and inprogress do not work
 
 loading wayyyy to long...
 
+The private chats dont update autonaticatlly
+
 ## New Stuff???
 
 make so can change profile pic
 
 make so can view people profile from click on mane
-
-make so fits on one screen, no scroll
 
 make so show who active
 
