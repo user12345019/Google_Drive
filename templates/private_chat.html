@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home - Google Drive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -25,7 +25,6 @@
           <i class="fas fa-bell"></i>
           <span id="badge">0</span>
         </button>
-
         <div id="notificationMenu">
           <div class="header">
             <h2>Notifications</h2>
@@ -50,7 +49,7 @@
           </ul>
         </div>
       </div>
-      <h1 id="title">Chat with {{ other_user.username }}</h1>
+      <h1 id="title">Private Chat with {{ other_user.username }}</h1>
       <div id="content">
         <div id="backBtn">
           <h2>Back</h2>
@@ -96,6 +95,7 @@
           </form>
         </div>
       </div>
+      <p><a href="/logout">Logout</a></p>
     </div>
     <img
       id="decoyImage"
@@ -111,6 +111,36 @@
         z-index: 9999;
       "
     />
+
+    <script>
+      const currentUserId = {{ current_user_id }};
+      const otherUserId = {{ other_user.id }};
+      const privateMessagesContainer = document.getElementById('messages');
+
+      function fetchPrivateMessages() {
+        fetch(`/get_private_messages/${otherUserId}`)
+          .then(response => response.json())
+          .then(data => {
+            privateMessagesContainer.innerHTML = '';
+            data.forEach(msg => {
+              const msgElement = document.createElement('p');
+              msgElement.innerHTML = `<strong>${msg.sender}</strong> (${msg.timestamp}): ${escapeHtml(msg.text)}`;
+              privateMessagesContainer.appendChild(msgElement);
+            });
+
+            privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
+          });
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.innerText = text;
+        return div.innerHTML;
+      }
+
+      setInterval(fetchPrivateMessages, 1000);
+      fetchPrivateMessages();
+    </script>
     <script>
       const privateChatCurrentUserId = {{ current_user_id }};
       const otherUserId = {{ other_user.id }};
