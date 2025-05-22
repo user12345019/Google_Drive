@@ -27,22 +27,20 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///messages.db"
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
 
-
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     type = db.Column(
         db.String(50), nullable=False
-    )  # e.g., 'public_message', 'private_message'
-    content = db.Column(db.Text, nullable=False)  # Notification text
-    data = db.Column(db.Text, nullable=True)  # Optional JSON data, stored as text
+    )  
+    content = db.Column(db.Text, nullable=False) 
+    data = db.Column(db.Text, nullable=True) 
     timestamp = db.Column(
         db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
     )
     read = db.Column(
         db.Boolean, default=False
-    )  # Whether the notification has been read
-
+    ) 
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -63,7 +61,6 @@ class User(db.Model):
     )
     suggestions = db.relationship("Suggestion", backref="sender", lazy=True)
 
-
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -71,7 +68,6 @@ class Message(db.Model):
     timestamp = db.Column(
         db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
     )
-
 
 class PrivateMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,7 +78,6 @@ class PrivateMessage(db.Model):
         db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
     )
 
-
 class Suggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -92,11 +87,9 @@ class Suggestion(db.Model):
     )
     completed = db.Column(db.Boolean, default=False)
 
-
 if not os.path.exists("messages.db"):
     with app.app_context():
         db.create_all()
-
 
 def login_required(f):
     @wraps(f)
@@ -106,7 +99,6 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
 
 @app.route("/")
 @login_required
@@ -118,7 +110,6 @@ def chat():
     return render_template(
         "chat.html", messages=messages, users=users, user=user, is_admin=is_admin
     )
-
 
 @app.route("/get_messages")
 @login_required
@@ -133,7 +124,6 @@ def get_messages():
         for message in messages
     ]
     return jsonify(messages_data)
-
 
 @app.route("/get_private_messages/<int:user_id>")
 @login_required
@@ -162,7 +152,6 @@ def get_private_messages(user_id):
         for msg in messages
     ]
     return jsonify(messages_data)
-
 
 @app.route("/private_chat/<int:user_id>")
 @login_required
@@ -194,7 +183,6 @@ def private_chat(user_id):
         current_user_id=current_user_id,
         user=current_user_id,
     )
-
 
 @app.route("/send", methods=["POST"])
 @login_required
@@ -237,7 +225,6 @@ def send():
             )
         db.session.commit()
     return redirect(url_for("chat"))
-
 
 @app.route("/send_private/<int:recipient_id>", methods=["POST"])
 @login_required
@@ -284,7 +271,6 @@ def send_private(recipient_id):
         )
     return redirect(url_for("private_chat", user_id=recipient_id))
 
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -299,7 +285,6 @@ def register():
         return redirect(url_for("login"))
     return render_template("register.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -312,19 +297,17 @@ def login():
         return "Invalid username or password"
     return render_template("login.html")
 
-
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
     return redirect(url_for("login"))
-
 
 @app.route("/admin")
 @login_required
 def admin_dashboard():
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(403)
+        abort(40
     users = User.query.all()
     public_messages = (
         db.session.query(
@@ -372,42 +355,38 @@ def admin_dashboard():
         suggestions=suggestions,
     )
 
-
 @app.route("/delete_public_message/<int:message_id>", methods=["POST"])
 @login_required
 def delete_public_message(message_id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(403)
+        abort(40
     message = Message.query.get_or_404(message_id)
     db.session.delete(message)
     db.session.commit()
     return redirect(url_for("admin_dashboard"))
-
 
 @app.route("/delete_private_message/<int:message_id>", methods=["POST"])
 @login_required
 def delete_private_message(message_id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(403)
+        abort(40
     message = PrivateMessage.query.get_or_404(message_id)
     db.session.delete(message)
     db.session.commit()
     return redirect(url_for("admin_dashboard"))
-
 
 @app.route("/delete_suggestion/<int:suggestion_id>", methods=["POST"])
 @login_required
 def delete_suggestion(suggestion_id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(403)
+        abort(40
     suggestion = Suggestion.query.get_or_404(suggestion_id)
     db.session.delete(suggestion)
     db.session.commit()
     return redirect(url_for("admin_dashboard"))
-
 
 @app.route("/suggestions")
 @login_required
@@ -416,7 +395,6 @@ def suggestions():
     is_admin = current_user.username == "admin"
     user = User.query.get(session["user_id"])
     return render_template("suggestions.html", is_admin=is_admin, user=user)
-
 
 @app.route("/get_suggestions")
 @login_required
@@ -434,7 +412,6 @@ def get_suggestions():
     ]
     return jsonify(data)
 
-
 @app.route("/send_suggestion", methods=["POST"])
 @login_required
 def send_suggestion():
@@ -447,25 +424,22 @@ def send_suggestion():
         db.session.commit()
     return redirect(url_for("suggestions"))
 
-
 @app.route("/complete_suggestion/<int:id>", methods=["POST"])
 @login_required
 def complete_suggestion(id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(403)
+        abort(40
     suggestion = Suggestion.query.get_or_404(id)
     suggestion.completed = True
     db.session.commit()
     return ("", 204)
-
 
 @app.route("/profile/<int:user_id>")
 @login_required
 def profile(user_id):
     user = User.query.get(user_id)
     return render_template("profile.html", user=user)
-
 
 @app.route("/get_notifications")
 @login_required
@@ -488,7 +462,6 @@ def get_notifications():
     ]
     return jsonify(data)
 
-
 @app.route("/clear_notifications", methods=["POST"])
 @login_required
 def clear_notifications():
@@ -496,14 +469,12 @@ def clear_notifications():
     db.session.commit()
     return ("", 204)
 
-
 @app.route("/get_users")
 @login_required
 def get_users():
     users = User.query.filter(User.id != session["user_id"]).all()
     data = [{"id": user.id, "username": user.username} for user in users]
     return jsonify(data)
-
 
 @app.route("/mark_notifications_read", methods=["POST"])
 @login_required
@@ -516,12 +487,10 @@ def mark_notifications_read():
     db.session.commit()
     return ("", 204)
 
-
 @socketio.on("join")
 def handle_join(data):
     user_id = data["user_id"]
     join_room(f"user_{user_id}")
-
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=5002)
