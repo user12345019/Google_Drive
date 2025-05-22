@@ -74,14 +74,43 @@
             </p>
             {% endif %} {% endfor %}
           </div>
-          <form id="form" method="POST" action="/send_private/{{ other_user.id }}">
-            <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required />
-            <input id="sendButton" type="submit" value="Send" aria-label="Send Message"/>
+          <form
+            id="form"
+            method="POST"
+            action="/send_private/{{ other_user.id }}"
+          >
+            <input
+              id="messagePlace"
+              type="text"
+              name="message"
+              placeholder="Type your message..."
+              required
+              autofocus
+            />
+            <input
+              id="sendButton"
+              type="submit"
+              value="Send"
+              aria-label="Send Message"
+            />
           </form>
         </div>
       </div>
     </div>
-    <img id="decoyImage"src="/static/123.png"style="display: none;position: fixed;top: 0;left: 0;width: 100vw;height: 100vh;object-fit: cover;z-index: 9999;"/>
+    <img
+      id="decoyImage"
+      src="/static/123.png"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: 9999;
+      "
+    />
     <script>
       const privateChatCurrentUserId = {{ current_user_id }};
       const otherUserId = {{ other_user.id }};

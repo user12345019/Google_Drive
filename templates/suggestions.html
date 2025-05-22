@@ -67,13 +67,27 @@
               name="suggestion"
               placeholder="Type your suggestion..."
               autocomplete="off"
+              autofocus
             />
             <input id="sendButton" type="submit" value="Send Suggestion" />
           </form>
         </div>
       </div>
     </div>
-    <img id="decoyImage" src="/static/123.png" style=" display: none; position: fixed; top: 0; left: 0; width: 100vw;height: 100vh;object-fit: cover;z-index: 9999; "/>
+    <img
+      id="decoyImage"
+      src="/static/123.png"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: 9999;
+      "
+    />
     <script>
 
       const root = document.documentElement;
@@ -89,7 +103,7 @@
           }
       });
 
-      
+
       const profileButton = document.getElementById("profileButton");
       const profileMenu = document.getElementById("profileMenu");
       profileButton.addEventListener("click", (e) => {

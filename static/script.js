@@ -79,51 +79,51 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchNotifications() {
     const res = await fetch("/get_notifications");
     const data = await res.json();
-        notificationsList.innerHTML = "";
-        data.forEach((notification) => {
-          const li = document.createElement("li");
-          if (notification.type === "private_message" && notification.data) {
-            const a = document.createElement("a");
-            a.href = `/private_chat/${notification.data.sender_id}`;
-            a.textContent = notification.content;
-            li.appendChild(a);
-          } else {
-            li.textContent = notification.content;
-          }
-          if (notification.read) {
-            li.classList.add("read");
-          }
-          notificationsList.appendChild(li);
-        });
-        notificationCount = data.filter((n) => !n.read).length;
-        notificationBadge.textContent = notificationCount;
-        updateTitleWithNotifications(notificationCount);
-        if (notificationCount > 0) {
-          notificationBadge.classList.add("visible");
+    notificationsList.innerHTML = "";
+    data.forEach((notification) => {
+      const li = document.createElement("li");
+      if (notification.type === "private_message" && notification.data) {
+        const a = document.createElement("a");
+        a.href = `/private_chat/${notification.data.sender_id}`;
+        a.textContent = notification.content;
+        li.appendChild(a);
+      } else {
+        li.textContent = notification.content;
+      }
+      if (notification.read) {
+        li.classList.add("read");
+      }
+      notificationsList.appendChild(li);
+    });
+    notificationCount = data.filter((n) => !n.read).length;
+    notificationBadge.textContent = notificationCount;
+    updateTitleWithNotifications(notificationCount);
+    if (notificationCount > 0) {
+      notificationBadge.classList.add("visible");
       notificationStatus.textContent = `You have ${notificationCount} new notification${
         notificationCount > 1 ? "s" : ""
       }`;
-        } else {
-          notificationBadge.classList.remove("visible");
-          notificationStatus.textContent = "No notifications";
-        }
-  
-        const counts = {};
-        data.forEach((notification) => {
+    } else {
+      notificationBadge.classList.remove("visible");
+      notificationStatus.textContent = "No notifications";
+    }
+
+    const counts = {};
+    data.forEach((notification) => {
       if (
         notification.type === "private_message" &&
         notification.data &&
         !notification.read
       ) {
-            const senderId = notification.data.sender_id;
-            if (senderId) {
-              counts[senderId] = (counts[senderId] || 0) + 1;
-            }
-          }
-        });
-        notificationCounts = counts;
+        const senderId = notification.data.sender_id;
+        if (senderId) {
+          counts[senderId] = (counts[senderId] || 0) + 1;
+        }
+      }
+    });
+    notificationCounts = counts;
   }
-  
+
   if (notificationButton && notificationMenu) {
     notificationButton.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-  
+
   // Only fetch when tray closed
   setInterval(() => {
     if (!notificationMenu?.classList.contains("open")) {
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
   }
-  
+
   // Listen for new private messages in real-time with SocketIO
   socket.on("new_private_message", (msg) => {
     if (msg.sender_id === otherUserId || msg.recipient_id === otherUserId) {
@@ -228,8 +228,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Load initial messages (no polling needed after this)
-  
-  
 
   // === Users List ===
   function fetchUsersList() {
@@ -238,20 +236,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((data) => {
         const usersList = document.getElementById("users")?.querySelector("ul");
         if (!usersList) return;
-          usersList.innerHTML = "";
-          data.forEach((user) => {
-            const li = document.createElement("li");
-            const a = document.createElement("a");
-            a.href = `/private_chat/${user.id}`;
-            a.textContent = user.username;
-            const count = notificationCounts[user.id] || 0;
-            if (count > 0) {
-              a.textContent += ` (${count})`;
-            }
-            li.appendChild(a);
-            usersList.appendChild(li);
-          });
-        
+        usersList.innerHTML = "";
+        data.forEach((user) => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = `/private_chat/${user.id}`;
+          a.textContent = user.username;
+          const count = notificationCounts[user.id] || 0;
+          if (count > 0) {
+            a.textContent += ` (${count})`;
+          }
+          li.appendChild(a);
+          usersList.appendChild(li);
+        });
       });
   }
 
@@ -259,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (msgs) {
     msgs.scrollTop = msgs.scrollHeight;
     const observer = new MutationObserver(() => {
-      if (isNearBottom()) {
+      if (shouldScroll && isNearBottom()) {
         msgs.scrollTop = msgs.scrollHeight;
       }
     });
@@ -271,11 +268,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Initialization ===
-  fetchPrivateMessages();
-  setInterval(fetchPrivateMessages, 100); 
+  // Fix: move these element grabs before use in profile section
+  const profileBtn = document.getElementById("profileButton");
+  const profileMn = document.getElementById("profileMenu");
+
+  if (profileBtn) {
+    profileBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileMn.classList.toggle("open");
+
+      // Inject Dashboard link only if isAdmin and it doesn't already exist
+      if (window.isAdmin && !document.getElementById("adminLink")) {
+        const dashboardLi = document.createElement("li");
+        const dashboardLink = document.createElement("a");
+        dashboardLink.href = "/admin";
+        dashboardLink.textContent = "Dashboard";
+        dashboardLink.id = "adminLink";
+        dashboardLi.appendChild(dashboardLink);
+        profileMn.querySelector("ul").prepend(dashboardLi);
+      }
+    });
+  }
+
+  // === Initialization ==
   fetchNotifications();
-  setInterval(fetchNotifications, 1000); 
+  setInterval(fetchNotifications, 1000);
   fetchUsersList();
-  setInterval(fetchUsersList, 1000); 
+  setInterval(fetchUsersList, 1000);
 });
