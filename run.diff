@@ -1,0 +1,51 @@
+--- a/flask_app.py
++++ b/flask_app.py
+@@ def send_private(recipient_id):
+-        sender = User.query.get(session['user_id'])
+-        socketio.emit('new_private_message', {
+-            'sender_id': sender.id,
+-            'sender_username': sender.username,
+-            'text': message_text,
+-            'timestamp': new_message.timestamp.strftime('%Y-%m-%d %H:%M')
+-        }, room=f'user_{recipient_id}')
++        sender = User.query.get(session['user_id'])
++        for uid in [session['user_id'], recipient_id]:
++            socketio.emit('new_private_message', {
++                'sender_id': sender.id,
++                'sender_username': sender.username,
++                'recipient_id': recipient_id,
++                'text': message_text,
++                'timestamp': new_message.timestamp.strftime('%Y-%m-%d %H:%M')
++            }, room=f'user_{uid}')
+
+--- a/static/script.js
++++ b/static/script.js
+@@
+-socket.on("new_private_message", (msg) => {
+-    if (msg.sender_id === otherUserId || msg.recipient_id === otherUserId) {
+-      const msgElement = document.createElement("p");
+-      const sender =
+-        msg.sender_id === currentUserId
+-          ? "You"
+-          : escapeHtml(msg.sender_username);
+-      msgElement.innerHTML = `<strong>${sender}</strong> (${
+-        msg.timestamp
+-      }): ${escapeHtml(msg.text)}`;
+-      privateMessagesContainer.appendChild(msgElement);
+-      privateMessagesContainer.scrollTop =
+-        privateMessagesContainer.scrollHeight; // Auto-scroll to the bottom
+-    }
+-  });
++socket.on("new_private_message", (msg) => {
++  if (
++    (msg.sender_id === otherUserId && msg.recipient_id === currentUserId) ||
++    (msg.sender_id === currentUserId && msg.recipient_id === otherUserId)
++  ) {
++    const msgElement = document.createElement("p");
++    const sender =
++      msg.sender_id === currentUserId ? "You" : escapeHtml(msg.sender_username);
++    msgElement.innerHTML = `<strong>${sender}</strong> (${msg.timestamp}): ${escapeHtml(msg.text)}`;
++    privateMessagesContainer.appendChild(msgElement);
++    privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
++  }
++});
