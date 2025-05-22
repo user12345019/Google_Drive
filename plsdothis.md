@@ -12,11 +12,9 @@ Had copoilt give feature suggestions...
 
 ## Fix these
 
-the mark as complete and inprogress do not work
+the mark as complete not work
 
 loading wayyyy to long...
-
-The private chats dont update autonaticatlly
 
 ## New Stuff???
 
