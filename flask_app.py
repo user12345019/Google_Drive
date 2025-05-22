@@ -76,7 +76,8 @@ def chat():
     messages = Message.query.order_by(Message.timestamp).all()
     users = User.query.filter(User.id != session['user_id']).all()
     user = User.query.get(session['user_id'])
-    return render_template('chat.html', messages=messages, users=users, user=user)
+    is_admin = user.username == 'admin'  # Define admin status
+    return render_template('chat.html', messages=messages, users=users, user=user, is_admin=is_admin)
 
 @app.route('/get_messages')
 @login_required
@@ -172,7 +173,6 @@ def send_private(recipient_id):
             'text': message_text,
             'timestamp': new_message.timestamp.strftime('%Y-%m-%d %H:%M')
         }, room=f'user_{recipient_id}')
-        # Create notification for the recipient
         content = f"New private message from {sender.username}"
         data = json.dumps({'sender_id': sender.id, 'sender_username': sender.username})
         new_notification = Notification(user_id=recipient_id, type='private_message', content=content, data=data)
@@ -393,4 +393,4 @@ def handle_join(data):
     join_room(f'user_{user_id}')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5001)
+    socketio.run(app, debug=True, port=5002)

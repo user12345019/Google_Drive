@@ -4,9 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home - Google Drive</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png" />
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      href="https://www.computerhope.com/issues/pictures/google-drive-logo.png"
+    />
+    <link
+      href="{{ url_for('static', filename='styles.css') }}"
+      rel="stylesheet"
+    />
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   </head>
   <body>
@@ -28,7 +37,11 @@
       </div>
       <div id="profileMenuContainer">
         <button id="profileButton" aria-label="User Profile">
-          <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}"/>
+          <img
+            class="profile-pic"
+            src="{{ url_for('static', filename='123.png') }}"
+            alt="{{ user.username }}"
+          />
         </button>
         <div id="profileMenu">
           <ul>
@@ -47,17 +60,19 @@
         </div>
         <div id="mainArea">
           <div id="messages">
-            {% for message in messages %} 
-            {% if message.sender_id == current_user_id %}
+            {% for message in messages %} {% if message.sender_id ==
+            current_user_id %}
             <p>
-              <strong>You</strong> ({{ message.timestamp }}): {{ message.message_text }}
+              <strong>You</strong> ({{ message.timestamp }}): {{
+              message.message_text }}
             </p>
             {% else %}
             <p>
-              <strong>{{ other_user.username }}</strong> ({{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}): {{ message.message_text }}
+              <strong>{{ other_user.username }}</strong> ({{
+              message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}): {{
+              message.message_text }}
             </p>
-            {% endif %} 
-            {% endfor %}
+            {% endif %} {% endfor %}
           </div>
           <form id="form" method="POST" action="/send_private/{{ other_user.id }}">
             <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required />

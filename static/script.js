@@ -4,7 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const root = document.documentElement;
   const msgs = document.getElementById("messages");
   const currentUserId = window.currentUserId || null;
-  const otherUserId = window.otherUserId || null; // For private chat
+  const otherUserId = window.otherUserId || null;
+
+  // Fix: declare shouldScroll so it can be set in the scroll listener
+  let shouldScroll = true;
 
   // Utility Functions
   function escapeHtml(text) {
@@ -42,14 +45,19 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // === Profile Menu ===
+  // Fix: ensure profileButton/profileMenu are defined before use
   const profileButton = document.getElementById("profileButton");
   const profileMenu = document.getElementById("profileMenu");
-  if (profileButton) {
-    profileButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      profileMenu.classList.toggle("open");
-    });
-  }
+  document.addEventListener("click", (e) => {
+    if (
+      profileMenu &&
+      !profileMenu.contains(e.target) &&
+      e.target !== profileButton
+    ) {
+      profileMenu.classList.remove("open");
+    }
+  });
+
   document.addEventListener("click", () => {
     if (profileMenu) profileMenu.classList.remove("open");
   });
@@ -65,13 +73,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateTitleWithNotifications(count) {
     document.title =
-      count > 0 ? `(${count}) Home - Google Drive` : `Home - Google Drive`;
+      count > 0 ? `Home (${count}) - Google Drive` : `Home - Google Drive`;
   }
 
-  function fetchNotifications() {
-    fetch("/get_notifications")
-      .then((res) => res.json())
-      .then((data) => {
+  async function fetchNotifications() {
+    const res = await fetch("/get_notifications");
+    const data = await res.json();
         notificationsList.innerHTML = "";
         data.forEach((notification) => {
           const li = document.createElement("li");
@@ -93,7 +100,9 @@ document.addEventListener("DOMContentLoaded", () => {
         updateTitleWithNotifications(notificationCount);
         if (notificationCount > 0) {
           notificationBadge.classList.add("visible");
-          notificationStatus.textContent = `You have ${notificationCount} new notification${notificationCount > 1 ? "s" : ""}`;
+      notificationStatus.textContent = `You have ${notificationCount} new notification${
+        notificationCount > 1 ? "s" : ""
+      }`;
         } else {
           notificationBadge.classList.remove("visible");
           notificationStatus.textContent = "No notifications";
@@ -101,7 +110,11 @@ document.addEventListener("DOMContentLoaded", () => {
   
         const counts = {};
         data.forEach((notification) => {
-          if (notification.type === "private_message" && notification.data && !notification.read) {
+      if (
+        notification.type === "private_message" &&
+        notification.data &&
+        !notification.read
+      ) {
             const senderId = notification.data.sender_id;
             if (senderId) {
               counts[senderId] = (counts[senderId] || 0) + 1;
@@ -109,10 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
         notificationCounts = counts;
-      });
   }
   
-  if (notificationButton) {
+  if (notificationButton && notificationMenu) {
     notificationButton.addEventListener("click", (e) => {
       e.stopPropagation();
       const opening = !notificationMenu.classList.contains("open");
@@ -126,13 +138,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
   document.addEventListener("click", (e) => {
-    if (notificationMenu.classList.contains("open")) {
+    if (notificationMenu?.classList.contains("open")) {
       if (!notificationMenu.contains(e.target)) {
         notificationMenu.classList.remove("open");
       }
     }
   });
+
   if (clearNotifications) {
     clearNotifications.addEventListener("click", () => {
       fetch("/clear_notifications", {
@@ -149,16 +163,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   
-
-
-  // Only fetch new notifications when the tray is closed, every 5 seconds
+  // Only fetch when tray closed
   setInterval(() => {
-    if (!notificationMenu.classList.contains("open")) {
+    if (!notificationMenu?.classList.contains("open")) {
       fetchNotifications();
     }
   }, 5000);
 
-  // Fire one initial fetch
+  // Initial fetch
   fetchNotifications();
 
   // === Public Messages ===
@@ -225,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((response) => response.json())
       .then((data) => {
         const usersList = document.getElementById("users")?.querySelector("ul");
-        if (usersList) {
+        if (!usersList) return;
           usersList.innerHTML = "";
           data.forEach((user) => {
             const li = document.createElement("li");
@@ -239,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
             li.appendChild(a);
             usersList.appendChild(li);
           });
-        }
+        
       });
   }
 

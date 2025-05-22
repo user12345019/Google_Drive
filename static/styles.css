@@ -282,12 +282,12 @@ html.away #decoyImage {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding-top: 5px;
   position: relative;
 }
 
 #notificationButton i {
-  font-size: 24px;
+  font-size: 30px;
   color: white;
   transition: transform 0.2s;
 }
@@ -298,8 +298,8 @@ html.away #decoyImage {
 
 #badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: 0px;
+  right: 0px;
   background-color: #953434;
   color: #cadfee;
   border-radius: 50%;
@@ -456,7 +456,6 @@ html.away #decoyImage {
 #backBtn a:hover {
   text-decoration: underline;
 }
-
 
 /* Media query adjustments for smaller screens */
 @media (max-width: 600px) {
