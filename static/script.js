@@ -1,15 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // === Shared Variables and Utilities ===
+
   let notificationCounts = {};
   const root = document.documentElement;
   const msgs = document.getElementById("messages");
   const currentUserId = window.currentUserId || null;
   const otherUserId = window.otherUserId || null;
 
-  // Fix: declare shouldScroll so it can be set in the scroll listener
   let shouldScroll = true;
 
-  // Utility Functions
   function escapeHtml(text) {
     const div = document.createElement("div");
     div.innerText = text;
@@ -20,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
   }
 
-  // === SocketIO Setup ===
   const socket = io({
     transports: ["websocket", "polling"],
   });
@@ -32,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // === Away Status Toggle ===
   function toggleAway() {
     root.classList.toggle("away");
   }
@@ -44,8 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // === Profile Menu ===
-  // Fix: ensure profileButton/profileMenu are defined before use
   const profileButton = document.getElementById("profileButton");
   const profileMenu = document.getElementById("profileMenu");
   document.addEventListener("click", (e) => {
@@ -62,7 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (profileMenu) profileMenu.classList.remove("open");
   });
 
-  // === Notifications ===
   const notificationButton = document.getElementById("notificationButton");
   const notificationMenu = document.getElementById("notificationMenu");
   const notificationBadge = document.getElementById("badge");
@@ -163,17 +156,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Only fetch when tray closed
   setInterval(() => {
     if (!notificationMenu?.classList.contains("open")) {
       fetchNotifications();
     }
   }, 5000);
 
-  // Initial fetch
   fetchNotifications();
 
-  // === Public Messages ===
   socket.on("new_public_message", (data) => {
     const msgElem = document.createElement("p");
     msgElem.innerHTML = `<strong>${data.username}</strong> (${
@@ -187,11 +177,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // === Private Messages ===
-
-  // Load initial messages (no polling needed after this)
-
-  // === Users List ===
   function fetchUsersList() {
     fetch("/get_users")
       .then((response) => response.json())
@@ -214,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  // === Scroll-to-Bottom Logic ===
   if (msgs) {
     msgs.scrollTop = msgs.scrollHeight;
     const observer = new MutationObserver(() => {
@@ -230,7 +214,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Fix: move these element grabs before use in profile section
   const profileBtn = document.getElementById("profileButton");
   const profileMn = document.getElementById("profileMenu");
 
@@ -239,7 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       profileMn.classList.toggle("open");
 
-      // Inject Dashboard link only if isAdmin and it doesn't already exist
       if (window.isAdmin && !document.getElementById("adminLink")) {
         const dashboardLi = document.createElement("li");
         const dashboardLink = document.createElement("a");
@@ -251,8 +233,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // === Initialization ==
 
   fetchNotifications();
   setInterval(fetchNotifications, 1000);
