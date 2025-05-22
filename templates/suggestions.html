@@ -5,16 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home - Google Drive</title>
     <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
       rel="icon"
       href="https://www.computerhope.com/issues/pictures/google-drive-logo.png"
     />
     <link
-      rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
+      rel="stylesheet"
     />
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   </head>
   <body>
     <div id="appContainer">
+      <div id="notificationContainer">
+        <button id="notificationButton">
+          <i class="fas fa-bell"></i>
+          <span id="badge">0</span>
+        </button>
+
+        <div id="notificationMenu">
+          <div class="header">
+            <h2>Notifications</h2>
+            <button id="clearNotifications">Clear All</button>
+          </div>
+          <p id="notification-status">No notifications</p>
+          <ul id="notifications" class="notifications-list"></ul>
+        </div>
+      </div>
       <div id="profileMenuContainer">
         <button id="profileButton" aria-label="User Profile">
           <img
@@ -47,6 +67,7 @@
               name="suggestion"
               placeholder="Type your suggestion..."
               autocomplete="off"
+              autofocus
             />
             <input id="sendButton" type="submit" value="Send Suggestion" />
           </form>
@@ -68,7 +89,7 @@
       "
     />
     <script>
-      // Toggle away class
+
       const root = document.documentElement;
 
       function toggleAway() {
@@ -82,7 +103,7 @@
           }
       });
 
-      // Profile menu toggle
+
       const profileButton = document.getElementById("profileButton");
       const profileMenu = document.getElementById("profileMenu");
       profileButton.addEventListener("click", (e) => {
@@ -93,7 +114,6 @@
           profileMenu.classList.remove("open");
       });
 
-      // Suggestions handling
       const isAdmin = {{ 'true' if is_admin else 'false' }};
       const msgs = document.getElementById("messages");
       let isUpdating = false;
@@ -138,7 +158,6 @@
                       html += " 🔜";
                   } else if (isAdmin) {
                       html += ` <button onclick="markComplete(${s.id})">Mark Complete</button>`;
-                      html += ` <button onclick="markInProgress(${s.id})">Mark in Progress</button>`;
                   }
                   p.innerHTML = html;
                   msgs.appendChild(p);
