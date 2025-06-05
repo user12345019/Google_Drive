@@ -307,7 +307,7 @@ def logout():
 def admin_dashboard():
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(40
+        abort(402)
     users = User.query.all()
     public_messages = (
         db.session.query(
@@ -360,7 +360,7 @@ def admin_dashboard():
 def delete_public_message(message_id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(40
+        abort(402)
     message = Message.query.get_or_404(message_id)
     db.session.delete(message)
     db.session.commit()
@@ -371,7 +371,7 @@ def delete_public_message(message_id):
 def delete_private_message(message_id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(40
+        abort(402)
     message = PrivateMessage.query.get_or_404(message_id)
     db.session.delete(message)
     db.session.commit()
@@ -382,7 +382,7 @@ def delete_private_message(message_id):
 def delete_suggestion(suggestion_id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(40
+        abort(402)
     suggestion = Suggestion.query.get_or_404(suggestion_id)
     db.session.delete(suggestion)
     db.session.commit()
@@ -429,7 +429,7 @@ def send_suggestion():
 def complete_suggestion(id):
     user = User.query.get(session["user_id"])
     if not user or user.username != "admin":
-        abort(40
+        abort(402)
     suggestion = Suggestion.query.get_or_404(id)
     suggestion.completed = True
     db.session.commit()
