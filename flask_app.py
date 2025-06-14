@@ -25,7 +25,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "onetwothreefour"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///messages.db"
-app.config["UPLOAD_FOLDER"] = "static/users"
+app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "users")
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
 

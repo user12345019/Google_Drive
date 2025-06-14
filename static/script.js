@@ -188,11 +188,29 @@ document.addEventListener("DOMContentLoaded", () => {
           const li = document.createElement("li");
           const a = document.createElement("a");
           a.href = `/private_chat/${user.id}`;
-          a.textContent = user.username;
+          
+          // Create profile picture element
+          const img = document.createElement("img");
+          img.className = "user-profile-pic";
+          img.src = `/static/users/${user.id}.png`;
+          img.alt = user.username;
+          img.onerror = function() {
+            this.src = "/static/123.png";
+          };
+          
+          // Add username text
+          const usernameSpan = document.createElement("span");
+          usernameSpan.textContent = user.username;
+          
+          // Add notification count if any
           const count = notificationCounts[user.id] || 0;
           if (count > 0) {
-            a.textContent += ` (${count})`;
+            usernameSpan.textContent += ` (${count})`;
           }
+          
+          // Append elements
+          a.appendChild(img);
+          a.appendChild(usernameSpan);
           li.appendChild(a);
           usersList.appendChild(li);
         });

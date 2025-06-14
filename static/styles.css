@@ -103,10 +103,27 @@ html.away #decoyImage {
   color: #293761;
   text-decoration: none;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-profile-pic {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #953434;
 }
 
 #users a:hover {
-  text-decoration: underline;
+  text-decoration: none;
+}
+
+#users li:hover .user-profile-pic {
+  border-color: #600d27;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }
 
 #mainArea {
@@ -253,12 +270,15 @@ html.away #decoyImage {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #cadfee;
-  transition: transform 0.2s;
+  border: 2px solid #953434;
+  background-color: white;
+  padding: 2px;
 }
 
 #profileButton:hover .profile-pic {
-  transform: scale(1.1);
+  border-color: #600d27;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }
 
 #profileMenu {
