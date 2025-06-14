@@ -38,7 +38,7 @@
         <button id="profileButton" aria-label="User Profile">
           <img
             class="profile-pic"
-            src="{{ url_for('static', filename='123.png') }}"
+            src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}"
             alt="{{ user.username }}"
           />
         </button>
@@ -59,19 +59,31 @@
         </div>
         <div id="mainArea">
           <div id="messages">
-            {% for message in messages %} {% if message.sender_id ==
-            current_user_id %}
-            <p>
-              <strong>You</strong> ({{ message.timestamp }}): {{
-              message.message_text }}
-            </p>
-            {% else %}
-            <p>
-              <strong>{{ other_user.username }}</strong> ({{
-              message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}): {{
-              message.message_text }}
-            </p>
-            {% endif %} {% endfor %}
+            {% for message in messages %}
+            <div class="message-container">
+              {% if message.sender_id == current_user_id %}
+              <a href="/profile/{{ user.id }}">
+                <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+              </a>
+              <div class="message-content">
+                <p>
+                  <a href="/profile/{{ user.id }}"><strong>You</strong></a> ({{ message.timestamp }}):<br>
+                  {{ message.message_text }}
+                </p>
+              </div>
+              {% else %}
+              <a href="/profile/{{ other_user.id }}">
+                <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + other_user.id|string + '.png') if other_user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ other_user.username }}" />
+              </a>
+              <div class="message-content">
+                <p>
+                  <a href="/profile/{{ other_user.id }}"><strong>{{ other_user.username }}</strong></a> ({{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br>
+                  {{ message.message_text }}
+                </p>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
           </div>
           <form
             id="form"
@@ -95,7 +107,6 @@
           </form>
         </div>
       </div>
-      <p><a href="/logout">Logout</a></p>
     </div>
     <img
       id="decoyImage"

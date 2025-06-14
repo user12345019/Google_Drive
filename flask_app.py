@@ -17,6 +17,7 @@ import pytz
 import os
 from flask_socketio import SocketIO, join_room
 import json
+from werkzeug.utils import secure_filename
 
 timezone = pytz.timezone("America/Chicago")
 
@@ -24,8 +25,12 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "onetwothreefour"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///messages.db"
+app.config["UPLOAD_FOLDER"] = "static/users"
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
+
+# Create upload folder if it doesn't exist
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -100,6 +105,9 @@ def login_required(f):
 
     return decorated_function
 
+def get_user_images():
+    return [f for f in os.listdir(app.config["UPLOAD_FOLDER"]) if f.endswith(('.png', '.jpg', '.jpeg'))]
+
 @app.route("/")
 @login_required
 def chat():
@@ -107,8 +115,9 @@ def chat():
     users = User.query.filter(User.id != session["user_id"]).all()
     user = User.query.get(session["user_id"])
     is_admin = user.username == "admin"  # Define admin status
+    user_images = get_user_images()
     return render_template(
-        "chat.html", messages=messages, users=users, user=user, is_admin=is_admin
+        "chat.html", messages=messages, users=users, user=user, is_admin=is_admin, user_images=user_images
     )
 
 @app.route("/get_messages")
@@ -156,9 +165,10 @@ def get_private_messages(user_id):
 @app.route("/private_chat/<int:user_id>")
 @login_required
 def private_chat(user_id):
-    # Load the other user or 404 if they don’t exist
+    # Load the other user or 404 if they don't exist
     other_user = User.query.get_or_404(user_id)
     current_user_id = session["user_id"]
+    current_user = User.query.get(current_user_id)
 
     # Fetch the two-way private message history
     messages = (
@@ -175,13 +185,14 @@ def private_chat(user_id):
         .order_by(PrivateMessage.timestamp)
         .all()
     )
-
+    user_images = get_user_images()
     return render_template(
         "private_chat.html",
         messages=messages,
         other_user=other_user,
         current_user_id=current_user_id,
-        user=current_user_id,
+        user=current_user,
+        user_images=user_images
     )
 
 @app.route("/send", methods=["POST"])
@@ -347,12 +358,15 @@ def admin_dashboard():
         .order_by(Suggestion.timestamp.desc())
         .all()
     )
+    user_images = get_user_images()
     return render_template(
         "admin_dashboard.html",
         users=users,
         public_messages=public_messages,
         private_messages=private_messages,
         suggestions=suggestions,
+        user=user,
+        user_images=user_images
     )
 
 @app.route("/delete_public_message/<int:message_id>", methods=["POST"])
@@ -394,7 +408,8 @@ def suggestions():
     current_user = User.query.get(session["user_id"])
     is_admin = current_user.username == "admin"
     user = User.query.get(session["user_id"])
-    return render_template("suggestions.html", is_admin=is_admin, user=user)
+    user_images = get_user_images()
+    return render_template("suggestions.html", is_admin=is_admin, user=user, user_images=user_images)
 
 @app.route("/get_suggestions")
 @login_required
@@ -439,7 +454,38 @@ def complete_suggestion(id):
 @login_required
 def profile(user_id):
     user = User.query.get(user_id)
-    return render_template("profile.html", user=user)
+    current_user = User.query.get(session["user_id"])
+    user_images = get_user_images()
+    return render_template("profile.html", user=user, current_user=current_user, user_images=user_images)
+
+@app.route("/upload_profile_picture", methods=["POST"])
+@login_required
+def upload_profile_picture():
+    if "profile_picture" not in request.files:
+        return redirect(url_for("profile", user_id=session["user_id"]))
+    
+    file = request.files["profile_picture"]
+    if file.filename == "":
+        return redirect(url_for("profile", user_id=session["user_id"]))
+    
+    if file:
+        # Get the file extension
+        filename = secure_filename(file.filename)
+        file_ext = os.path.splitext(filename)[1].lower()
+        
+        # Only allow png and jpg/jpeg
+        if file_ext not in ['.png', '.jpg', '.jpeg']:
+            return redirect(url_for("profile", user_id=session["user_id"]))
+        
+        # Save as PNG
+        user_id = session["user_id"]
+        new_filename = f"{user_id}.png"
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], new_filename)
+        
+        # Save the file
+        file.save(file_path)
+        
+    return redirect(url_for("profile", user_id=session["user_id"]))
 
 @app.route("/get_notifications")
 @login_required

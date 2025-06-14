@@ -6,9 +6,9 @@ body {
   padding: 0;
   font-family: "Lucida Sans", sans-serif;
   background-color: #600d27;
-  height: 100vh;
+  min-height: 100vh;
   color: #cadfee;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 h1,
@@ -30,7 +30,9 @@ h1 {
 }
 
 #appContainer {
-  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 html.away #appContainer {
@@ -57,6 +59,8 @@ html.away #decoyImage {
   gap: 20px;
   padding: 20px;
   box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
 }
 
 #users {
@@ -109,19 +113,41 @@ html.away #decoyImage {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  min-height: 0;
 }
 
 #messages {
-  height: 450px;
+  height: calc(100vh - 210px);  /* Slightly reduced height */
+  overflow-y: auto;
+  padding: 15px;
   border-radius: 10px;
   background-color: #cadfee;
   color: #cadfee;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  overflow-y: auto;
-  padding: 15px;
   display: flex;
   flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: #953434 #cadfee;
+}
+
+/* Custom scrollbar styles for Webkit browsers (Chrome, Safari, etc.) */
+#messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+#messages::-webkit-scrollbar-track {
+  background: #cadfee;
+  border-radius: 10px;
+}
+
+#messages::-webkit-scrollbar-thumb {
+  background: #953434;
+  border-radius: 10px;
+  border: 2px solid #cadfee;
+}
+
+#messages::-webkit-scrollbar-thumb:hover {
+  background: #600d27;
 }
 
 #messages p {
@@ -132,6 +158,11 @@ html.away #decoyImage {
   border-radius: 8px;
   max-width: 80%;
   word-wrap: break-word;
+}
+
+#messages p a {
+  text-decoration: none;
+  color: inherit;
 }
 
 #messages p strong {
@@ -273,8 +304,9 @@ html.away #decoyImage {
 
 #notificationContainer {
   position: absolute;
-  top: 150;
-  right: 100px;
+  top: 20px;
+  right: 80px;
+  z-index: 1000;
 }
 
 /* Notification button, styled similarly to the profile button */
@@ -465,32 +497,73 @@ html.away #decoyImage {
     right: 10px;
     width: auto;
   }
+
+  #notificationContainer {
+    top: 20px;
+    right: 70px;
+  }
 }
 
 @media (max-width: 600px) {
   #content {
     flex-direction: column;
     align-items: center;
-    padding-bottom: 20px;
+    padding: 10px;
+    gap: 10px;
   }
 
-  #backBtn {
+  #users {
     width: 90%;
-    height: 200px;
-    margin-bottom: 15px;
+    max-height: 30vh;
   }
 
   #mainArea {
     width: 90%;
+    height: 60vh;
   }
 
   #messages {
-    height: 300px;
-    margin-bottom: 15px;
+    height: auto;
+    margin-bottom: 10px;
   }
 
   #messagePlace,
   #sendButton {
     font-size: 13px;
   }
+}
+
+.message-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    padding: 5px;
+}
+
+.message-profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    flex-shrink: 0;
+    margin-top: 8px;
+    transition: transform 0.2s ease;
+}
+
+.message-container a:hover .message-profile-pic {
+    transform: scale(1.1);
+}
+
+.message-content {
+    flex-grow: 1;
+    background-color: white;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message-content p {
+    margin: 0;
+    line-height: 1.4;
 }

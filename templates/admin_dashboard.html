@@ -151,6 +151,17 @@
             </details>
          </div>
       </div>
+      <div id="profileMenuContainer">
+         <button id="profileButton" aria-label="User Profile">
+            <img class="profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+         </button>
+         <div id="profileMenu">
+            <ul>
+               <li><a href="/profile/{{ user.id }}">Profile</a></li>
+               <li><a href="/logout">Logout</a></li>
+            </ul>
+         </div>
+      </div>
       <script>
          document.addEventListener('DOMContentLoaded', () => {
            

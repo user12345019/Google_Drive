@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("new_public_message", (data) => {
     const msgElem = document.createElement("p");
-    msgElem.innerHTML = `<strong>${data.username}</strong> (${
+    msgElem.innerHTML = `<a href="/profile/${data.sender_id}"><strong>${data.username}</strong></a> (${
       data.timestamp
     }): ${escapeHtml(data.text)}`;
     if (msgs) {

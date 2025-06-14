@@ -60,17 +60,73 @@ html.away #decoyImage {
     padding: 0;
 }
 
-.profile-pic {
+.profile-card {
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    width: 300px;
+    transition: transform 0.2s;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+}
+
+.profile-pic-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.profile-pic-container:hover .upload-overlay {
+    opacity: 1;
+}
+
+.upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.upload-overlay span {
+    color: white;
+    font-size: 14px;
+    text-align: center;
+    padding: 10px;
+}
+
+/* Profile page picture */
+.profile-card .profile-pic {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Menu profile picture */
+#profileButton .profile-pic {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #CADFEE;
     transition: transform 0.2s;
-}
-
-#profileButton:hover .profile-pic {
-    transform: scale(1.1);
 }
 
 #profileMenu {
@@ -121,26 +177,6 @@ html.away #decoyImage {
     padding: 20px;
     box-sizing: border-box;
     width: 100%;
-}
-
-.profile-card {
-    background-color: #CADFEE;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    text-align: center;
-    width: 300px;
-    transition: transform 0.2s;
-}
-
-.profile-card:hover {
-    transform: translateY(-5px);
-}
-
-.profile-card .profile-pic {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 15px;
 }
 
 .profile-card h2 {
@@ -204,4 +240,35 @@ a:hover {
     h1 {
         font-size: 24px;
     }
+}
+
+.upload-form {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.upload-form input[type="file"] {
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.upload-form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.upload-form button:hover {
+    background-color: #45a049;
 }

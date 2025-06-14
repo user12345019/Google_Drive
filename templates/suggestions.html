@@ -39,7 +39,7 @@
         <button id="profileButton" aria-label="User Profile">
           <img
             class="profile-pic"
-            src="{{ url_for('static', filename='123.png') }}"
+            src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}"
             alt="{{ user.username }}"
           />
         </button>

@@ -12,7 +12,7 @@
     <div id="appContainer">
       <div id="profileMenuContainer">
         <button id="profileButton" aria-label="User Profile">
-          <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}"/>
+          <img class="profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
         </button>
         <div id="profileMenu">
           <ul>
@@ -54,11 +54,18 @@
         <div id="mainArea">
           <div id="messages">
             {% for message in messages %}
-            <p>
-              <strong>{{ message.sender.username }}</strong> ({{
-              message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}): {{
-              message.message_text }}
-            </p>
+            <div class="message-container">
+              <a href="/profile/{{ message.sender.id }}">
+                <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + message.sender.id|string + '.png') if message.sender.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ message.sender.username }}" />
+              </a>
+              <div class="message-content">
+                <p>
+                  <a href="/profile/{{ message.sender.id }}"><strong>{{ message.sender.username }}</strong></a> ({{
+                  message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br> {{
+                  message.message_text }}
+                </p>
+              </div>
+            </div>
             {% endfor %}
           </div>
           <form id="form" method="POST" action="/send">
@@ -67,7 +74,6 @@
           </form>
         </div>
       </div>
-      <p><a href="{{ url_for('suggestions') }}">Suggestions</a></p>
     </div>
     <img
       id="decoyImage"

@@ -2,17 +2,17 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <title>{{ user.username }}’s Profile</title>
+        <title>{{ user.username }}'s Profile</title>
         <link href="{{ url_for('static', filename='profileStyles.css') }}" rel="stylesheet">
     <body>
         <div id="appContainer">
             <div id="profileMenuContainer">
                 <button id="profileButton" aria-label="User Profile">
-                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                    <img class="profile-pic" src="{{ url_for('static', filename='users/' + current_user.id|string + '.png') if current_user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ current_user.username }}" />
                 </button>
                 <div id="profileMenu">
                     <ul>
-                        <li><a href="/profile/{{ user.id }}">Profile</a></li>
+                        <li><a href="/profile/{{ current_user.id }}">Profile</a></li>
                         <li><a href="/logout">Logout</a></li>
                     </ul>
                 </div>
@@ -21,7 +21,19 @@
             <h1 id="title">Profile</h1>
             <div id="content" class="profile-content">
                 <div class="profile-card">
-                    <img class="profile-pic" src="{{ url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                    {% if user.id == session['user_id'] %}
+                    <label for="profile-upload" class="profile-pic-container">
+                        <img class="profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                        <div class="upload-overlay">
+                            <span>Click to change picture</span>
+                        </div>
+                    </label>
+                    <form id="upload-form" action="{{ url_for('upload_profile_picture') }}" method="post" enctype="multipart/form-data" style="display: none;">
+                        <input type="file" id="profile-upload" name="profile_picture" accept="image/png,image/jpeg" onchange="this.form.submit()">
+                    </form>
+                    {% else %}
+                    <img class="profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                    {% endif %}
                     <h2>{{ user.username }}</h2>
                     <p><strong>User ID:</strong> {{ user.id }}</p>
                 </div>
