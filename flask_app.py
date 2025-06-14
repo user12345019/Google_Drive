@@ -406,8 +406,9 @@ def delete_suggestion(suggestion_id):
 @login_required
 def suggestions():
     current_user = User.query.get(session["user_id"])
+    suggestions = Suggestion.query.order_by(Suggestion.timestamp.desc()).all()
     user_images = get_user_images()
-    return render_template("suggestions.html", user=current_user, user_images=user_images)
+    return render_template("suggestions.html", user=current_user, suggestions=suggestions, user_images=user_images)
 
 @app.route("/get_suggestions")
 @login_required

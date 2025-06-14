@@ -178,6 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function fetchUsersList() {
+    if (window.location.pathname === '/suggestions') return;
+    
     fetch("/get_users")
       .then((response) => response.json())
       .then((data) => {
