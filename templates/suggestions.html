@@ -45,7 +45,11 @@
         </button>
         <div id="profileMenu">
           <ul>
+            {% if user.username == "admin" %}
+            <li><a href="/admin">Dashboard</a></li>
+            {% endif %}
             <li><a href="/profile/{{ user.id }}">Profile</a></li>
+            <li><a href="/suggestions">Suggestions</a></li>
             <li><a href="/logout">Logout</a></li>
           </ul>
         </div>

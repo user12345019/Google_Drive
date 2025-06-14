@@ -406,10 +406,8 @@ def delete_suggestion(suggestion_id):
 @login_required
 def suggestions():
     current_user = User.query.get(session["user_id"])
-    is_admin = current_user.username == "admin"
-    user = User.query.get(session["user_id"])
     user_images = get_user_images()
-    return render_template("suggestions.html", is_admin=is_admin, user=user, user_images=user_images)
+    return render_template("suggestions.html", user=current_user, user_images=user_images)
 
 @app.route("/get_suggestions")
 @login_required
@@ -456,7 +454,7 @@ def profile(user_id):
     user = User.query.get(user_id)
     current_user = User.query.get(session["user_id"])
     user_images = get_user_images()
-    return render_template("profile.html", user=user, current_user=current_user, user_images=user_images)
+    return render_template("profile.html", user=current_user, current_user=current_user, user_images=user_images)
 
 @app.route("/upload_profile_picture", methods=["POST"])
 @login_required
