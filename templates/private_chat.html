@@ -127,19 +127,56 @@
       const currentUserId = {{ current_user_id }};
       const otherUserId = {{ other_user.id }};
       const privateMessagesContainer = document.getElementById('messages');
+      let previousMessageCount = 0;
 
       function fetchPrivateMessages() {
         fetch(`/get_private_messages/${otherUserId}`)
           .then(response => response.json())
           .then(data => {
+            const currentMessageCount = data.length;
+            const shouldScroll = previousMessageCount === 0 || currentMessageCount > previousMessageCount;
+            previousMessageCount = currentMessageCount;
+
             privateMessagesContainer.innerHTML = '';
             data.forEach(msg => {
-              const msgElement = document.createElement('p');
-              msgElement.innerHTML = `<strong>${msg.sender}</strong> (${msg.timestamp}): ${escapeHtml(msg.text)}`;
-              privateMessagesContainer.appendChild(msgElement);
+              const messageContainer = document.createElement('div');
+              messageContainer.className = 'message-container';
+              
+              const profileLink = document.createElement('a');
+              profileLink.href = msg.sender_id === currentUserId ? `/profile/${currentUserId}` : `/profile/${otherUserId}`;
+              
+              const profilePic = document.createElement('img');
+              profilePic.className = 'message-profile-pic';
+              profilePic.src = msg.sender_id === currentUserId 
+                ? `/static/users/${currentUserId}.png` 
+                : `/static/users/${otherUserId}.png`;
+              profilePic.alt = msg.sender;
+              profilePic.onerror = function() { this.src = '/static/123.png'; };
+              
+              profileLink.appendChild(profilePic);
+              
+              const messageContent = document.createElement('div');
+              messageContent.className = 'message-content';
+              
+              const messageText = document.createElement('p');
+              const senderLink = document.createElement('a');
+              senderLink.href = msg.sender_id === currentUserId ? `/profile/${currentUserId}` : `/profile/${otherUserId}`;
+              senderLink.innerHTML = `<strong>${msg.sender_id === currentUserId ? 'You' : msg.sender}</strong>`;
+              
+              messageText.appendChild(senderLink);
+              messageText.appendChild(document.createTextNode(` (${msg.timestamp}):`));
+              messageText.appendChild(document.createElement('br'));
+              messageText.appendChild(document.createTextNode(escapeHtml(msg.text)));
+              
+              messageContent.appendChild(messageText);
+              messageContainer.appendChild(profileLink);
+              messageContainer.appendChild(messageContent);
+              privateMessagesContainer.appendChild(messageContainer);
             });
 
-            privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
+            if (shouldScroll) {
+              privateMessagesContainer.scrollTop = privateMessagesContainer.scrollHeight;
+            }
           });
       }
 
