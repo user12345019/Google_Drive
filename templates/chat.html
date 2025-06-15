@@ -84,42 +84,122 @@
       src="/static/123.png"
       style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
     <script>
+     // Define constants and initialize Socket.IO
       const currentUserId = {{ user.id }};
+      const root = document.documentElement;
+      const socket = io();
 
-      // Request notification permission when the page loads
-      document.addEventListener('DOMContentLoaded', function() {
+      // Toggle "away" status on the root element
+      function toggleAway() {
+        root.classList.toggle("away");
+      }
+
+      // Keyboard shortcut: Ctrl + I to toggle "away" status
+      document.addEventListener("keydown", function (event) {
+        if (event.ctrlKey && event.key.toLowerCase() === "i") {
+          event.preventDefault();
+          toggleAway();
+        }
+      });
+
+      // Handle page load: set up message scrolling and request notification permission
+      window.addEventListener("DOMContentLoaded", () => {
+        const msgs = document.getElementById("messages");
+        msgs.scrollTop = msgs.scrollHeight;
+
+        // Check if the user is near the bottom of the message container
+        function isNearBottom() {
+          return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
+        }
+
+        let shouldScroll = isNearBottom();
+
+        // Auto-scroll to the bottom when new messages are added
+        const observer = new MutationObserver(() => {
+          if (shouldScroll) {
+            msgs.scrollTop = msgs.scrollHeight;
+          }
+        });
+
+        observer.observe(msgs, { childList: true });
+
+        // Update scrolling behavior based on user interaction
+        msgs.addEventListener("scroll", () => {
+          shouldScroll = isNearBottom();
+        });
+
+        // Request permission for desktop notifications
         if ("Notification" in window) {
           Notification.requestPermission();
         }
       });
 
-      // Function to show desktop notification
+      // Toggle profile menu on button click
+      const profileButton = document.getElementById("profileButton");
+      const profileMenu = document.getElementById("profileMenu");
+
+      profileButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        profileMenu.classList.toggle("open");
+      });
+
+      // Close profile menu when clicking outside
+      document.addEventListener("click", () => {
+        profileMenu.classList.remove("open");
+      });
+
+      // Fetch and display messages from the server
+      function fetchMessages() {
+        fetch("/get_messages")
+          .then((response) => response.json())
+          .then((data) => {
+            const container = document.getElementById("messages");
+            container.innerHTML = "";
+            data.forEach((message) => {
+              const msgElem = document.createElement("div");
+              msgElem.className = "message-container";
+              msgElem.innerHTML = `
+                <a href="/profile/${message.sender_id}">
+                  <img class="message-profile-pic" src="/static/users/${message.sender_id}.png" alt="${message.username}" onerror="this.src='/static/123.png';" />
+                </a>
+                <div class="message-content">
+                  <p>
+                    <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
+                  </p>
+                </div>
+              `;
+              container.appendChild(msgElem);
+            });
+          })
+          .catch((error) => console.error("Error fetching messages:", error));
+      }
+
+      // Poll for new messages every 500ms and fetch immediately on load
+      setInterval(fetchMessages, 500);
+      fetchMessages();
+
+      // Show desktop notifications
       function showDesktopNotification(title, body) {
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification(title, {
             body: body,
-            icon: '/static/favicon.ico'  // You can change this to your app's icon
+            icon: "/static/favicon.ico"  // Customize this as needed
           });
         }
       }
 
-      // Socket.IO event handlers
-      socket.on('new_message', function(data) {
-        // Show desktop notification for new messages
-        showDesktopNotification('New Message', `${data.username}: ${data.text}`);
-        // ... existing message handling code ...
+      // Handle real-time Socket.IO events
+      socket.on("new_message", function (data) {
+        showDesktopNotification("New Message", `${data.username}: ${data.text}`);
+        fetchMessages(); // Refresh messages when a new one arrives
       });
 
-      socket.on('new_private_message', function(data) {
-        // Show desktop notification for new private messages
-        showDesktopNotification('New Private Message', `${data.sender}: ${data.text}`);
-        // ... existing private message handling code ...
+      socket.on("new_private_message", function (data) {
+        showDesktopNotification("New Private Message", `${data.sender}: ${data.text}`);
       });
 
-      socket.on('new_notification', function(data) {
-        // Show desktop notification for new notifications
-        showDesktopNotification('New Notification', data.content);
-        // ... existing notification handling code ...
+      socket.on("new_notification", function (data) {
+        showDesktopNotification("New Notification", data.content);
       });
     </script>
     <script defer src="{{ url_for('static', filename='script.js') }}"></script>
