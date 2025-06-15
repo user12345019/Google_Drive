@@ -107,22 +107,33 @@ html.away #decoyImage {
   align-items: center;
   gap: 10px;
   position: relative;
+  padding-right: 28px; /* Increased padding for status dot */
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  min-width: 0;
+  padding-right: 16px; /* Extra padding to prevent text-dot overlap */
 }
 
 .username {
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%; /* Ensures ellipsis for long names */
 }
 
 .last-seen {
   font-size: 0.8em;
   color: #666;
   margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .user-profile-pic {
@@ -131,6 +142,8 @@ html.away #decoyImage {
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #953434;
+  background-color: white;
+  padding: 2px;
 }
 
 #users a:hover {
@@ -141,6 +154,22 @@ html.away #decoyImage {
   border-color: #600d27;
   transform: scale(1.05);
   transition: all 0.2s ease;
+}
+
+.online-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  position: absolute;
+  right: 10px; /* Moved further from text to avoid ellipsis overlap */
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background-color 0.3s ease;
+}
+
+.online-status.offline {
+  background-color: #ccc;
 }
 
 #mainArea {
@@ -432,7 +461,7 @@ html.away #decoyImage {
   transition: background-color 0.3s ease;
 }
 
-/* Hover effect for the clear button */
+/* Hover effect for the service button */
 #clearNotifications:hover {
   background-color: #444b18;
 }
@@ -586,6 +615,9 @@ html.away #decoyImage {
     flex-shrink: 0;
     margin-top: 8px;
     transition: transform 0.2s ease;
+    border: 2px solid #953434;
+    background-color: white;
+    padding: 2px;
 }
 
 .message-container a:hover .message-profile-pic {
@@ -603,20 +635,4 @@ html.away #decoyImage {
 .message-content p {
     margin: 0;
     line-height: 1.4;
-}
-
-.online-status {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #4CAF50;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: background-color 0.3s ease;
-}
-
-.online-status.offline {
-  background-color: #ccc;
 }

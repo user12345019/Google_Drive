@@ -8,6 +8,7 @@ from flask import (
     abort,
     jsonify,
 )
+from sqlalchemy import desc
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -600,18 +601,22 @@ def clear_notifications():
     db.session.commit()
     return ("", 204)
 
+
 @app.route("/get_users")
 @login_required
 def get_users():
-    users = User.query.filter(User.id != session["user_id"]).all()
+    users = User.query.filter(User.id != session["user_id"]).order_by(
+        desc(User.id.in_(online_users)),  # Online users first
+        desc(User.last_seen)  # Then offline users by last_seen (most recent first)
+    ).all()
+    # Debug log to verify sorting
+    print("Users sorted:", [(user.username, user.last_seen) for user in users])
     data = [{
         "id": user.id, 
         "username": user.username,
         "online": user.id in online_users,
-        "last_seen": user.last_seen.isoformat() if user.last_seen else None
+        "last_seen": user.last_seen.strftime("%Y-%m-%d %H:%M:%S") if user.last_seen else None
     } for user in users]
-    # Sort users: online first, then alphabetically by username
-    data.sort(key=lambda x: (-x["online"], x["username"].lower()))
     return jsonify(data)
 
 @app.route("/mark_notifications_read", methods=["POST"])
@@ -637,11 +642,12 @@ def handle_connect():
         if user:
             user.last_seen = datetime.now(pytz.utc).astimezone(timezone)
             db.session.commit()
-        online_users.add(session['user_id'])
-        socketio.emit('user_status_change', {
-            'user_id': session['user_id'],
-            'status': 'online'
-        }, broadcast=True)
+            print(f"Connect: {user.username} last_seen set to {user.last_seen}")  # Debug log
+            online_users.add(session['user_id'])
+            socketio.emit('user_status_change', {
+                'user_id': session['user_id'],
+                'status': 'online'
+            }, broadcast=True)
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -650,11 +656,14 @@ def handle_disconnect():
         if user:
             user.last_seen = datetime.now(pytz.utc).astimezone(timezone)
             db.session.commit()
+            print(f"Disconnect: {user.username} last_seen set to {user.last_seen}")  # Debug log
         online_users.discard(session['user_id'])
         socketio.emit('user_status_change', {
             'user_id': session['user_id'],
             'status': 'offline'
         }, broadcast=True)
+
+
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=5002)

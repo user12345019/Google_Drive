@@ -117,6 +117,9 @@ html.away #decoyImage {
     object-fit: cover;
     display: block;
     margin: 0 auto;
+    border: 2px solid #953434;
+    background-color: white;
+    padding: 2px;
 }
 
 /* Menu profile picture */
@@ -126,6 +129,8 @@ html.away #decoyImage {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #CADFEE;
+    background-color: white;
+    padding: 2px;
     transition: transform 0.2s;
 }
 
