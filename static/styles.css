@@ -65,12 +65,38 @@ html.away #decoyImage {
 
 #users {
   background-color: #cadfee;
-  border-radius: 8px;
+  border-radius: 8px; /* Rounds all corners */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   padding: 10px 0;
   width: 300px;
-  overflow-y: auto;
   flex-shrink: 0;
+  max-height: calc(100vh - 145px);
+  overflow-y: auto; /* Enables vertical scrolling */
+  scrollbar-width: thin; /* For Firefox: thin scrollbar */
+  scrollbar-color: #953434 #cadfee; /* For Firefox: thumb and track colors */
+  position: relative; /* Prevents overlap issues */
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+#users::-webkit-scrollbar {
+  width: 6px; /* Thinner scrollbar */
+}
+
+#users::-webkit-scrollbar-track {
+  background: #cadfee;
+  border-radius: 8px; /* Matches section radius */
+  margin-top: 8px; /* Space at top for rounding */
+  margin-bottom: 8px; /* Space at bottom for rounding */
+}
+
+#users::-webkit-scrollbar-thumb {
+  background: #953434;
+  border-radius: 8px; /* Rounded thumb */
+  border: 1px solid #cadfee; /* Border enhances visibility */
+}
+
+#users::-webkit-scrollbar-thumb:hover {
+  background: #600d27; /* Hover effect */
 }
 
 #users h2 {
@@ -180,37 +206,40 @@ html.away #decoyImage {
 }
 
 #messages {
-  height: calc(100vh - 210px);  /* Slightly reduced height */
-  overflow-y: auto;
+  height: calc(100vh - 210px);
+  overflow-y: auto; /* Enables vertical scrolling */
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 10px; /* Rounds all corners */
   background-color: #cadfee;
   color: #cadfee;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  scrollbar-width: thin;
-  scrollbar-color: #953434 #cadfee;
+  scrollbar-width: thin; /* For Firefox: thin scrollbar */
+  scrollbar-color: #953434 #cadfee; /* For Firefox: thumb and track colors */
+  position: relative; /* Prevents overlap issues */
 }
 
-/* Custom scrollbar styles for Webkit browsers (Chrome, Safari, etc.) */
+/* WebKit browsers (Chrome, Safari, Edge) */
 #messages::-webkit-scrollbar {
-  width: 8px;
+  width: 6px; /* Thinner scrollbar */
 }
 
 #messages::-webkit-scrollbar-track {
   background: #cadfee;
-  border-radius: 10px;
+  border-radius: 10px; /* Matches section radius */
+  margin-top: 10px; /* Space at top for rounding */
+  margin-bottom: 10px; /* Space at bottom for rounding */
 }
 
 #messages::-webkit-scrollbar-thumb {
   background: #953434;
-  border-radius: 10px;
-  border: 2px solid #cadfee;
+  border-radius: 10px; /* Rounded thumb */
+  border: 1px solid #cadfee; /* Border enhances visibility */
 }
 
 #messages::-webkit-scrollbar-thumb:hover {
-  background: #600d27;
+  background: #600d27; /* Hover effect */
 }
 
 #messages p {
@@ -461,7 +490,7 @@ html.away #decoyImage {
   transition: background-color 0.3s ease;
 }
 
-/* Hover effect for the service button */
+/* Hover effect for the clear button */
 #clearNotifications:hover {
   background-color: #444b18;
 }
@@ -542,7 +571,7 @@ html.away #decoyImage {
 
 #backBtn li:hover {
   background-color: #f0f8ff;
-  transform: translateX(4px);
+  transform: translate ~X(4px);
 }
 
 #backBtn a {
@@ -568,9 +597,7 @@ html.away #decoyImage {
     top: 20px;
     right: 70px;
   }
-}
 
-@media (max-width: 600px) {
   #content {
     flex-direction: column;
     align-items: center;
@@ -600,39 +627,39 @@ html.away #decoyImage {
 }
 
 .message-container {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    padding: 5px;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  padding: 5px;
 }
 
 .message-profile-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 10px;
-    flex-shrink: 0;
-    margin-top: 8px;
-    transition: transform 0.2s ease;
-    border: 2px solid #953434;
-    background-color: white;
-    padding: 2px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+  flex-shrink: 0;
+  margin-top: 8px;
+  transition: transform 0.2s ease;
+  border: 2px solid #953434;
+  background-color: white;
+  padding: 2px;
 }
 
 .message-container a:hover .message-profile-pic {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
 .message-content {
-    flex-grow: 1;
-    background-color: white;
-    padding: 5px;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex-grow: 1;
+  background-color: white;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .message-content p {
-    margin: 0;
-    line-height: 1.4;
+  margin: 0;
+  line-height: 1.4;
 }

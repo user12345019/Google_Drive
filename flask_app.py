@@ -8,6 +8,7 @@ from flask import (
     abort,
     jsonify,
 )
+import humanize
 from sqlalchemy import desc
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -605,18 +606,23 @@ def clear_notifications():
 @app.route("/get_users")
 @login_required
 def get_users():
+    now = datetime.now(pytz.utc).astimezone(timezone)  # Current time in CDT
     users = User.query.filter(User.id != session["user_id"]).order_by(
         desc(User.id.in_(online_users)),  # Online users first
         desc(User.last_seen)  # Then offline users by last_seen (most recent first)
     ).all()
-    # Debug log to verify sorting
-    print("Users sorted:", [(user.username, user.last_seen) for user in users])
     data = [{
         "id": user.id, 
         "username": user.username,
         "online": user.id in online_users,
-        "last_seen": user.last_seen.strftime("%Y-%m-%d %H:%M:%S") if user.last_seen else None
+        "last_seen": user.last_seen.strftime("%Y-%m-%d %H:%M:%S") if user.last_seen else None,
+        "relative_last_seen": (
+            humanize.naturaltime(
+                now - timezone.localize(user.last_seen)  # Make last_seen offset-aware
+            ) if user.last_seen else "Never"
+        )
     } for user in users]
+    print("Users sorted:", [(user.username, user.last_seen, data[i]["relative_last_seen"]) for i, user in enumerate(users)])  # Debug log
     return jsonify(data)
 
 @app.route("/mark_notifications_read", methods=["POST"])

@@ -94,8 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (notificationCount > 0) {
           notificationBadge.classList.add("visible");
           notificationStatus.textContent = `You have ${notificationCount} new notification${
-  notificationCount > 1 ? "s" : ""
-}`;
+      notificationCount > 1 ? "s" : ""
+    }`;
       } else {
           notificationBadge.classList.remove("visible");
           notificationStatus.textContent = "No notifications";
@@ -167,8 +167,8 @@ document.addEventListener("DOMContentLoaded", () => {
   socket.on("new_public_message", (data) => {
       const msgElem = document.createElement("p");
       msgElem.innerHTML = `<a href="/profile/${data.sender_id}"><strong>${data.username}</strong></a> (${
-data.timestamp
-}): ${escapeHtml(data.text)}`;
+    data.timestamp
+  }): ${escapeHtml(data.text)}`;
       if (msgs) {
           msgs.appendChild(msgElem);
           if (isNearBottom()) {
@@ -215,31 +215,11 @@ data.timestamp
                       usernameSpan.textContent += ` (${count})`;
                   }
 
-                  // Add last seen time for offline users
-                  // Add last seen time for offline users
-                  // Add last seen time for offline users
-                  if (!user.online && user.last_seen) {
+                  // Add relative last seen time for offline users
+                  if (!user.online && user.relative_last_seen) {
                       const lastSeenSpan = document.createElement("span");
                       lastSeenSpan.className = "last-seen";
-                      try {
-                          const lastSeenDate = new Date(user.last_seen + ' CDT');
-                          lastSeenSpan.textContent = `Last online: ${lastSeenDate.toLocaleString('en-US', {
-    timeZone: 'America/Chicago',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  })}`;
-                      } catch (e) {
-                          lastSeenSpan.textContent = `Last online: Unknown`;
-                      }
-                      userInfo.appendChild(lastSeenSpan);
-                  } else if (!user.online && !user.last_seen) {
-                      const lastSeenSpan = document.createElement("span");
-                      lastSeenSpan.className = "last-seen";
-                      lastSeenSpan.textContent = `Last online: Never`;
+                      lastSeenSpan.textContent = `Last online: ${user.relative_last_seen}`;
                       userInfo.appendChild(lastSeenSpan);
                   }
 
