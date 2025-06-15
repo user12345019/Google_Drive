@@ -1,0 +1,35 @@
+.profile-pattern {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 10px auto;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Stripe pattern */
+.pattern-stripes {
+    background: repeating-linear-gradient(
+        var(--angle),
+        var(--colors)
+    );
+}
+
+/* Dots pattern */
+.pattern-dots {
+    background-color: var(--base-color);
+    background-image: radial-gradient(
+        var(--dot-color) var(--dot-size),
+        transparent var(--dot-size)
+    );
+    background-position: var(--dot-position);
+    background-size: var(--dot-spacing) var(--dot-spacing);
+}
+
+/* Gradient pattern */
+.pattern-gradient {
+    background: linear-gradient(
+        var(--angle),
+        var(--colors)
+    );
+} 

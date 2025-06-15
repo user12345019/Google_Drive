@@ -169,3 +169,11 @@ input:-webkit-autofill ~ label {
     font-size: 14px;
   }
 }
+
+.error-message {
+    color: #ff3333;
+    text-align: center;
+    margin: 10px 0;
+    font-size: 14px;
+    font-weight: 500;
+}

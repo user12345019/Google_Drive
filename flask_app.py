@@ -18,6 +18,9 @@ import os
 from flask_socketio import SocketIO, join_room
 import json
 from werkzeug.utils import secure_filename
+import random
+from PIL import Image, ImageDraw
+import colorsys
 
 timezone = pytz.timezone("America/Chicago")
 
@@ -31,6 +34,63 @@ socketio = SocketIO(app)
 
 # Create upload folder if it doesn't exist
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+def generate_random_pattern_image(size=200):
+    # Create a new image with a white background
+    image = Image.new('RGB', (size, size), 'white')
+    draw = ImageDraw.Draw(image)
+    
+    # Generate random colors
+    num_colors = random.randint(3, 5)
+    colors = []
+    for _ in range(num_colors):
+        # Generate colors in HSV space for better color harmony
+        h = random.random()
+        s = random.uniform(0.5, 0.8)
+        v = random.uniform(0.7, 0.9)
+        r, g, b = colorsys.hsv_to_rgb(h, s, v)
+        colors.append((int(r * 255), int(g * 255), int(b * 255)))
+    
+    # Choose a pattern type
+    pattern_type = random.choice(['circles', 'stripes', 'dots'])
+    
+    if pattern_type == 'circles':
+        # Draw concentric circles
+        for i in range(num_colors):
+            radius = size * (1 - i/num_colors) / 2
+            center = size // 2
+            draw.ellipse(
+                [center - radius, center - radius, 
+                 center + radius, center + radius],
+                fill=colors[i]
+            )
+    
+    elif pattern_type == 'stripes':
+        # Draw diagonal stripes
+        stripe_width = size // num_colors
+        for i in range(num_colors):
+            for j in range(0, size * 2, stripe_width):
+                draw.polygon(
+                    [(j, 0), (j + stripe_width, 0),
+                     (j - size, size), (j - size + stripe_width, size)],
+                    fill=colors[i]
+                )
+    
+    else:  # dots
+        # Draw random dots
+        for i in range(num_colors):
+            num_dots = random.randint(20, 40)
+            for _ in range(num_dots):
+                x = random.randint(0, size)
+                y = random.randint(0, size)
+                dot_size = random.randint(5, 15)
+                draw.ellipse(
+                    [x - dot_size, y - dot_size,
+                     x + dot_size, y + dot_size],
+                    fill=colors[i]
+                )
+    
+    return image
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -284,20 +344,29 @@ def send_private(recipient_id):
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    error = None
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         if User.query.filter_by(username=username).first():
-            return "Username already exists"
-        password_hash = generate_password_hash(password)
-        new_user = User(username=username, password_hash=password_hash)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for("login"))
-    return render_template("register.html")
+            error = "Username already exists"
+        else:
+            password_hash = generate_password_hash(password)
+            new_user = User(username=username, password_hash=password_hash)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Generate and save pattern image
+            pattern_image = generate_random_pattern_image()
+            image_path = os.path.join(app.config["UPLOAD_FOLDER"], f"{new_user.id}.png")
+            pattern_image.save(image_path)
+            
+            return redirect(url_for("login"))
+    return render_template("register.html", error=error)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -305,8 +374,8 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session["user_id"] = user.id
             return redirect(url_for("chat"))
-        return "Invalid username or password"
-    return render_template("login.html")
+        error = "Invalid username or password"
+    return render_template("login.html", error=error)
 
 @app.route("/logout")
 def logout():
@@ -452,10 +521,10 @@ def complete_suggestion(id):
 @app.route("/profile/<int:user_id>")
 @login_required
 def profile(user_id):
-    user = User.query.get(user_id)
+    profile_user = User.query.get(user_id)
     current_user = User.query.get(session["user_id"])
     user_images = get_user_images()
-    return render_template("profile.html", user=current_user, current_user=current_user, user_images=user_images)
+    return render_template("profile.html", user=profile_user, current_user=current_user, user_images=user_images)
 
 @app.route("/upload_profile_picture", methods=["POST"])
 @login_required

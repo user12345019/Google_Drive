@@ -20,6 +20,9 @@
                 <label for="password">Password</label>
                 <span class="littleBar"></span>
             </div>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
             <input type="submit" value="Login">
             <div class="signupLink">
                 Don't have an account? <a href="/register">Register</a>
