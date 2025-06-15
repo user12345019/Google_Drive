@@ -361,7 +361,9 @@ def register():
             image_path = os.path.join(app.config["UPLOAD_FOLDER"], f"{new_user.id}.png")
             pattern_image.save(image_path)
             
-            return redirect(url_for("login"))
+            # Automatically log in the new user
+            session["user_id"] = new_user.id
+            return redirect(url_for("chat"))
     return render_template("register.html", error=error)
 
 @app.route("/login", methods=["GET", "POST"])
