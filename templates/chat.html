@@ -85,6 +85,42 @@
       style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
     <script>
       const currentUserId = {{ user.id }};
+
+      // Request notification permission when the page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        if ("Notification" in window) {
+          Notification.requestPermission();
+        }
+      });
+
+      // Function to show desktop notification
+      function showDesktopNotification(title, body) {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(title, {
+            body: body,
+            icon: '/static/favicon.ico'  // You can change this to your app's icon
+          });
+        }
+      }
+
+      // Socket.IO event handlers
+      socket.on('new_message', function(data) {
+        // Show desktop notification for new messages
+        showDesktopNotification('New Message', `${data.username}: ${data.text}`);
+        // ... existing message handling code ...
+      });
+
+      socket.on('new_private_message', function(data) {
+        // Show desktop notification for new private messages
+        showDesktopNotification('New Private Message', `${data.sender}: ${data.text}`);
+        // ... existing private message handling code ...
+      });
+
+      socket.on('new_notification', function(data) {
+        // Show desktop notification for new notifications
+        showDesktopNotification('New Notification', data.content);
+        // ... existing notification handling code ...
+      });
     </script>
     <script defer src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
