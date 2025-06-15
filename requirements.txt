@@ -7,3 +7,4 @@ eventlet
 gunicorn
 humanize==4.12.3
 Werkzeug==2.0.3
+SQLAlchemy==1.4.48
