@@ -21,6 +21,7 @@ from werkzeug.utils import secure_filename
 import random
 from PIL import Image, ImageDraw
 import colorsys
+from sqlalchemy import text
 
 timezone = pytz.timezone("America/Chicago")
 
@@ -34,6 +35,9 @@ socketio = SocketIO(app)
 
 # Create upload folder if it doesn't exist
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+# Track online users
+online_users = set()
 
 def generate_random_pattern_image(size=200):
     # Create a new image with a white background
@@ -111,6 +115,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(120), nullable=False)
+    last_seen = db.Column(db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone))
     messages = db.relationship("Message", backref="sender", lazy=True)
     sent_private_messages = db.relationship(
         "PrivateMessage",
@@ -155,6 +160,16 @@ class Suggestion(db.Model):
 if not os.path.exists("messages.db"):
     with app.app_context():
         db.create_all()
+else:
+    # Add last_seen column if it doesn't exist
+    with app.app_context():
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE user ADD COLUMN last_seen DATETIME"))
+                conn.commit()
+        except Exception as e:
+            # Column might already exist, which is fine
+            pass
 
 def login_required(f):
     @wraps(f)
@@ -589,7 +604,14 @@ def clear_notifications():
 @login_required
 def get_users():
     users = User.query.filter(User.id != session["user_id"]).all()
-    data = [{"id": user.id, "username": user.username} for user in users]
+    data = [{
+        "id": user.id, 
+        "username": user.username,
+        "online": user.id in online_users,
+        "last_seen": user.last_seen.isoformat() if user.last_seen else None
+    } for user in users]
+    # Sort users: online first, then alphabetically by username
+    data.sort(key=lambda x: (-x["online"], x["username"].lower()))
     return jsonify(data)
 
 @app.route("/mark_notifications_read", methods=["POST"])
@@ -607,6 +629,32 @@ def mark_notifications_read():
 def handle_join(data):
     user_id = data["user_id"]
     join_room(f"user_{user_id}")
+
+@socketio.on('connect')
+def handle_connect():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            user.last_seen = datetime.now(pytz.utc).astimezone(timezone)
+            db.session.commit()
+        online_users.add(session['user_id'])
+        socketio.emit('user_status_change', {
+            'user_id': session['user_id'],
+            'status': 'online'
+        }, broadcast=True)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            user.last_seen = datetime.now(pytz.utc).astimezone(timezone)
+            db.session.commit()
+        online_users.discard(session['user_id'])
+        socketio.emit('user_status_change', {
+            'user_id': session['user_id'],
+            'status': 'offline'
+        }, broadcast=True)
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=5002)

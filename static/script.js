@@ -177,6 +177,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function formatRelativeTime(timestamp) {
+    const now = new Date();
+    const lastSeen = new Date(timestamp);
+    const diffInSeconds = Math.floor((now - lastSeen) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'just now';
+    }
+    
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+    }
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+    }
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+    }
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+    }
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) {
+      return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+    }
+    
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
+  }
+
   function fetchUsersList() {
     if (window.location.pathname === '/suggestions') return;
     
@@ -200,8 +238,13 @@ document.addEventListener("DOMContentLoaded", () => {
             this.src = "/static/123.png";
           };
           
+          // Create user info container
+          const userInfo = document.createElement("div");
+          userInfo.className = "user-info";
+          
           // Add username text
           const usernameSpan = document.createElement("span");
+          usernameSpan.className = "username";
           usernameSpan.textContent = user.username;
           
           // Add notification count if any
@@ -210,14 +253,39 @@ document.addEventListener("DOMContentLoaded", () => {
             usernameSpan.textContent += ` (${count})`;
           }
           
+          // Add last seen time for offline users
+          if (!user.online && user.last_seen) {
+            const lastSeenSpan = document.createElement("span");
+            lastSeenSpan.className = "last-seen";
+            lastSeenSpan.textContent = `Last online: ${formatRelativeTime(user.last_seen)}`;
+            userInfo.appendChild(lastSeenSpan);
+          }
+          
+          // Add online status indicator
+          const statusDot = document.createElement("div");
+          statusDot.className = `online-status ${user.online ? '' : 'offline'}`;
+          
           // Append elements
+          userInfo.appendChild(usernameSpan);
           a.appendChild(img);
-          a.appendChild(usernameSpan);
+          a.appendChild(userInfo);
+          a.appendChild(statusDot);
           li.appendChild(a);
           usersList.appendChild(li);
         });
       });
   }
+
+  // Handle user status changes
+  socket.on('user_status_change', (data) => {
+    const userLinks = document.querySelectorAll(`#users a[href="/private_chat/${data.user_id}"]`);
+    userLinks.forEach(link => {
+      const statusDot = link.querySelector('.online-status');
+      if (statusDot) {
+        statusDot.classList.toggle('offline', data.status === 'offline');
+      }
+    });
+  });
 
   if (msgs) {
     msgs.scrollTop = msgs.scrollHeight;
@@ -257,5 +325,5 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchNotifications();
   setInterval(fetchNotifications, 1000);
   fetchUsersList();
-  setInterval(fetchUsersList, 1000);
+  setInterval(fetchUsersList, 60000);
 });

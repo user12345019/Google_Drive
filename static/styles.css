@@ -106,6 +106,23 @@ html.away #decoyImage {
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.username {
+  font-weight: 500;
+}
+
+.last-seen {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 2px;
 }
 
 .user-profile-pic {
@@ -586,4 +603,20 @@ html.away #decoyImage {
 .message-content p {
     margin: 0;
     line-height: 1.4;
+}
+
+.online-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: background-color 0.3s ease;
+}
+
+.online-status.offline {
+  background-color: #ccc;
 }
