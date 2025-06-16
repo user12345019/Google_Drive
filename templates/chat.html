@@ -178,8 +178,7 @@
       }
 
      
-      setInterval(fetchMessages, 500);
-      fetchMessages();
+      
 
       
       function showDesktopNotification(title, body) {
@@ -213,6 +212,8 @@
       socket.on("new_notification", function (data) {
         showDesktopNotification("New Notification", data.content);
       });
+      setInterval(fetchMessages, 500);
+      fetchMessages();
     </script>
     <script defer src="{{ url_for('static', filename='script.js') }}"></script>
   </body>
