@@ -84,29 +84,17 @@
       src="/static/123.png"
       style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
     <script>
-<<<<<<< HEAD
      
-=======
-     // Define constants and initialize Socket.IO
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       const currentUserId = {{ user.id }};
       const root = document.documentElement;
       const socket = io();
 
-<<<<<<< HEAD
     
-=======
-      // Toggle "away" status on the root element
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       function toggleAway() {
         root.classList.toggle("away");
       }
 
-<<<<<<< HEAD
    
-=======
-      // Keyboard shortcut: Ctrl + I to toggle "away" status
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       document.addEventListener("keydown", function (event) {
         if (event.ctrlKey && event.key.toLowerCase() === "i") {
           event.preventDefault();
@@ -114,31 +102,19 @@
         }
       });
 
-<<<<<<< HEAD
-    
-=======
-      // Handle page load: set up message scrolling and request notification permission
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
+      
       window.addEventListener("DOMContentLoaded", () => {
         const msgs = document.getElementById("messages");
         msgs.scrollTop = msgs.scrollHeight;
 
-<<<<<<< HEAD
   
-=======
-        // Check if the user is near the bottom of the message container
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
         function isNearBottom() {
           return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
         }
 
         let shouldScroll = isNearBottom();
 
-<<<<<<< HEAD
    
-=======
-        // Auto-scroll to the bottom when new messages are added
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
         const observer = new MutationObserver(() => {
           if (shouldScroll) {
             msgs.scrollTop = msgs.scrollHeight;
@@ -147,29 +123,17 @@
 
         observer.observe(msgs, { childList: true });
 
-<<<<<<< HEAD
         
-=======
-        // Update scrolling behavior based on user interaction
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
         msgs.addEventListener("scroll", () => {
           shouldScroll = isNearBottom();
         });
 
-<<<<<<< HEAD
        
-=======
-        // Request permission for desktop notifications
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
         if ("Notification" in window) {
           Notification.requestPermission();
         }
       });
 
-<<<<<<< HEAD
-=======
-      // Toggle profile menu on button click
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       const profileButton = document.getElementById("profileButton");
       const profileMenu = document.getElementById("profileMenu");
 
@@ -178,19 +142,11 @@
         profileMenu.classList.toggle("open");
       });
 
-<<<<<<< HEAD
       
-=======
-      // Close profile menu when clicking outside
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       document.addEventListener("click", () => {
         profileMenu.classList.remove("open");
       });
 
-<<<<<<< HEAD
-=======
-      // Fetch and display messages from the server
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       function fetchMessages() {
         fetch("/get_messages")
           .then((response) => response.json())
@@ -216,43 +172,24 @@
           .catch((error) => console.error("Error fetching messages:", error));
       }
 
-<<<<<<< HEAD
      
       setInterval(fetchMessages, 500);
       fetchMessages();
 
       
-=======
-      // Poll for new messages every 500ms and fetch immediately on load
-      setInterval(fetchMessages, 500);
-      fetchMessages();
-
-      // Show desktop notifications
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       function showDesktopNotification(title, body) {
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification(title, {
             body: body,
-<<<<<<< HEAD
             icon: "/static/favicon.ico" 
-=======
-            icon: "/static/favicon.ico"  // Customize this as needed
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
           });
         }
       }
 
-<<<<<<< HEAD
       
       socket.on("new_message", function (data) {
         showDesktopNotification("New Message", `${data.username}: ${data.text}`);
         fetchMessages();
-=======
-      // Handle real-time Socket.IO events
-      socket.on("new_message", function (data) {
-        showDesktopNotification("New Message", `${data.username}: ${data.text}`);
-        fetchMessages(); // Refresh messages when a new one arrives
->>>>>>> 27cc5061cd4f5838bb5a027f31bb8688542616af
       });
 
       socket.on("new_private_message", function (data) {
