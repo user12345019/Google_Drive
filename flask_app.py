@@ -54,11 +54,11 @@ def generate_random_pattern_image(size=200):
         r, g, b = colorsys.hsv_to_rgb(h, s, v)
         colors.append((int(r * 255), int(g * 255), int(b * 255)))
     
-    # Choose a pattern type
+    
     pattern_type = random.choice(['circles', 'stripes', 'dots'])
     
     if pattern_type == 'circles':
-        # Draw concentric circles
+       
         for i in range(num_colors):
             radius = size * (1 - i/num_colors) / 2
             center = size // 2
@@ -69,7 +69,7 @@ def generate_random_pattern_image(size=200):
             )
     
     elif pattern_type == 'stripes':
-        # Draw diagonal stripes
+      
         stripe_width = size // num_colors
         for i in range(num_colors):
             for j in range(0, size * 2, stripe_width):
@@ -79,8 +79,8 @@ def generate_random_pattern_image(size=200):
                     fill=colors[i]
                 )
     
-    else:  # dots
-        # Draw random dots
+    else:  
+       
         for i in range(num_colors):
             num_dots = random.randint(20, 40)
             for _ in range(num_dots):
@@ -160,14 +160,14 @@ if not os.path.exists("messages.db"):
     with app.app_context():
         db.create_all()
 else:
-    # Add last_seen column if it doesn't exist
+ 
     with app.app_context():
         try:
             with db.engine.connect() as conn:
                 conn.execute(text("ALTER TABLE user ADD COLUMN last_seen DATETIME"))
                 conn.commit()
         except Exception as e:
-            # Column might already exist, which is fine
+        
             pass
 
 def login_required(f):
@@ -188,7 +188,7 @@ def chat():
     messages = Message.query.order_by(Message.timestamp).all()
     users = User.query.filter(User.id != session["user_id"]).all()
     user = User.query.get(session["user_id"])
-    is_admin = user.username == "admin"  # Define admin status
+    is_admin = user.username == "admin" 
     user_images = get_user_images()
     return render_template(
         "chat.html", messages=messages, users=users, user=user, is_admin=is_admin, user_images=user_images
@@ -239,12 +239,10 @@ def get_private_messages(user_id):
 @app.route("/private_chat/<int:user_id>")
 @login_required
 def private_chat(user_id):
-    # Load the other user or 404 if they don't exist
     other_user = User.query.get_or_404(user_id)
     current_user_id = session["user_id"]
     current_user = User.query.get(current_user_id)
 
-    # Fetch the two-way private message history
     messages = (
         PrivateMessage.query.filter(
             (
@@ -287,7 +285,6 @@ def send():
                 "timestamp": new_message.timestamp.strftime("%Y-%m-%d %H:%M"),
             },
         )
-        # Create notifications for all other users
         users = User.query.filter(User.id != session["user_id"]).all()
         for user in users:
             content = f"New message from {sender.username} in public chat"
@@ -295,7 +292,7 @@ def send():
                 user_id=user.id, type="public_message", content=content
             )
             db.session.add(new_notification)
-            db.session.flush()  # ← This ensures timestamp is populated
+            db.session.flush()  
 
             socketio.emit(
                 "new_notification",
@@ -369,13 +366,9 @@ def register():
             new_user = User(username=username, password_hash=password_hash)
             db.session.add(new_user)
             db.session.commit()
-            
-            # Generate and save pattern image
             pattern_image = generate_random_pattern_image()
             image_path = os.path.join(app.config["UPLOAD_FOLDER"], f"{new_user.id}.png")
             pattern_image.save(image_path)
-            
-            # Automatically log in the new user
             session["user_id"] = new_user.id
             return redirect(url_for("chat"))
     return render_template("register.html", error=error)
@@ -553,20 +546,16 @@ def upload_profile_picture():
         return redirect(url_for("profile", user_id=session["user_id"]))
     
     if file:
-        # Get the file extension
         filename = secure_filename(file.filename)
         file_ext = os.path.splitext(filename)[1].lower()
         
-        # Only allow png and jpg/jpeg
         if file_ext not in ['.png', '.jpg', '.jpeg']:
             return redirect(url_for("profile", user_id=session["user_id"]))
         
-        # Save as PNG
         user_id = session["user_id"]
         new_filename = f"{user_id}.png"
         file_path = os.path.join(app.config["UPLOAD_FOLDER"], new_filename)
         
-        # Save the file
         file.save(file_path)
         
     return redirect(url_for("profile", user_id=session["user_id"]))
@@ -603,10 +592,10 @@ def clear_notifications():
 @app.route("/get_users")
 @login_required
 def get_users():
-    now = datetime.now(pytz.utc).astimezone(timezone)  # Current time in CDT
+    now = datetime.now(pytz.utc).astimezone(timezone)
     users = User.query.filter(User.id != session["user_id"]).order_by(
-        desc(User.id.in_(online_users)),  # Online users first
-        desc(User.last_seen)  # Then offline users by last_seen (most recent first)
+        desc(User.id.in_(online_users)),  
+        desc(User.last_seen) 
     ).all()
     data = [{
         "id": user.id, 
@@ -615,11 +604,11 @@ def get_users():
         "last_seen": user.last_seen.strftime("%Y-%m-%d %H:%M:%S") if user.last_seen else None,
         "relative_last_seen": (
             humanize.naturaltime(
-                now - timezone.localize(user.last_seen)  # Make last_seen offset-aware
+                now - timezone.localize(user.last_seen)  
             ) if user.last_seen else "Never"
         )
     } for user in users]
-    print("Users sorted:", [(user.username, user.last_seen, data[i]["relative_last_seen"]) for i, user in enumerate(users)])  # Debug log
+    print("Users sorted:", [(user.username, user.last_seen, data[i]["relative_last_seen"]) for i, user in enumerate(users)]) 
     return jsonify(data)
 
 @app.route("/mark_notifications_read", methods=["POST"])
@@ -645,7 +634,7 @@ def handle_connect():
         if user:
             user.last_seen = datetime.now(pytz.utc).astimezone(timezone)
             db.session.commit()
-            print(f"Connect: {user.username} last_seen set to {user.last_seen}")  # Debug log
+            print(f"Connect: {user.username} last_seen set to {user.last_seen}")
             online_users.add(session['user_id'])
             socketio.emit('user_status_change', {
                 'user_id': session['user_id'],
