@@ -30,7 +30,6 @@
           <i class="fas fa-bell"></i>
           <span id="badge">0</span>
         </button>
-
         <div id="notificationMenu">
           <div class="header">
             <h2>Notifications</h2>
@@ -84,22 +83,15 @@
       src="/static/123.png"
       style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
     <script>
- 
       const userImages = {{ user_images|tojson }};
-
-      const hasProfilePic = userImages.includes(`${message.sender_id}.png`);
-      const imgSrc = hasProfilePic ? `/static/users/${message.sender_id}.png` : '/static/123.png';
-      
       const currentUserId = {{ user.id }};
       const root = document.documentElement;
       const socket = io();
 
-    
       function toggleAway() {
         root.classList.toggle("away");
       }
 
-   
       document.addEventListener("keydown", function (event) {
         if (event.ctrlKey && event.key.toLowerCase() === "i") {
           event.preventDefault();
@@ -107,19 +99,16 @@
         }
       });
 
-      
       window.addEventListener("DOMContentLoaded", () => {
         const msgs = document.getElementById("messages");
         msgs.scrollTop = msgs.scrollHeight;
 
-  
         function isNearBottom() {
           return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
         }
 
         let shouldScroll = isNearBottom();
 
-   
         const observer = new MutationObserver(() => {
           if (shouldScroll) {
             msgs.scrollTop = msgs.scrollHeight;
@@ -128,12 +117,10 @@
 
         observer.observe(msgs, { childList: true });
 
-        
         msgs.addEventListener("scroll", () => {
           shouldScroll = isNearBottom();
         });
 
-       
         if ("Notification" in window) {
           Notification.requestPermission();
         }
@@ -147,58 +134,46 @@
         profileMenu.classList.toggle("open");
       });
 
-      
       document.addEventListener("click", () => {
         profileMenu.classList.remove("open");
       });
 
       function fetchMessages() {
-    fetch("/get_messages", { credentials: 'include' })
-      .then((response) => response.json())
-      .then((data) => {
-        const container = document.getElementById("messages");
-        container.innerHTML = "";
-        data.forEach((message) => {
-          const msgElem = document.createElement("div");
-          msgElem.className = "message-container";
-          msgElem.innerHTML = `
-            <a href="/profile/${message.sender_id}">
-              <img class="message-profile-pic" src="/static/users/${message.sender_id}.png" alt="${message.username}" onerror="this.src='/static/123.png';" />
-            </a>
-            <div class="message-content">
-              <p>
-                <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
-              </p>
-            </div>
-          `;
-          container.appendChild(msgElem);
-        });
-      })
-      .catch((error) => console.error("Error fetching messages:", error));
-  }
-     
-      
+        fetch("/get_messages", { credentials: 'include' })
+          .then((response) => response.json())
+          .then((data) => {
+            const container = document.getElementById("messages");
+            container.innerHTML = "";
+            data.forEach((message) => {
+              const hasProfilePic = userImages.includes(`${message.sender_id}.png`);
+              const imgSrc = hasProfilePic ? `/static/users/${message.sender_id}.png` : '/static/123.png';
+              const msgElem = document.createElement("div");
+              msgElem.className = "message-container";
+              msgElem.innerHTML = `
+                <a href="/profile/${message.sender_id}">
+                  <img class="message-profile-pic" src="${imgSrc}" alt="${message.username}" />
+                </a>
+                <div class="message-content">
+                  <p>
+                    <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
+                  </p>
+                </div>
+              `;
+              container.appendChild(msgElem);
+            });
+          })
+          .catch((error) => console.error("Error fetching messages:", error));
+      }
 
-      
       function showDesktopNotification(title, body) {
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification(title, {
             body: body,
-            icon: "/static/favicon.ico" 
+            icon: "/static/favicon.ico"
           });
         }
       }
-      msgElem.innerHTML = `
-        <a href="/profile/${message.sender_id}">
-          <img class="message-profile-pic" src="${imgSrc}" alt="${message.username}" />
-        </a>
-        <div class="message-content">
-          <p>
-            <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
-          </p>
-        </div>
-      `;
-      
+
       socket.on("new_message", function (data) {
         showDesktopNotification("New Message", `${data.username}: ${data.text}`);
         fetchMessages();
@@ -211,6 +186,7 @@
       socket.on("new_notification", function (data) {
         showDesktopNotification("New Notification", data.content);
       });
+
       setInterval(fetchMessages, 500);
       fetchMessages();
     </script>
