@@ -89,16 +89,7 @@
 
       const hasProfilePic = userImages.includes(`${message.sender_id}.png`);
       const imgSrc = hasProfilePic ? `/static/users/${message.sender_id}.png` : '/static/123.png';
-      msgElem.innerHTML = `
-        <a href="/profile/${message.sender_id}">
-          <img class="message-profile-pic" src="${imgSrc}" alt="${message.username}" />
-        </a>
-        <div class="message-content">
-          <p>
-            <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
-          </p>
-        </div>
-      `;
+      
       const currentUserId = {{ user.id }};
       const root = document.documentElement;
       const socket = io();
@@ -199,7 +190,16 @@
           });
         }
       }
-
+      msgElem.innerHTML = `
+        <a href="/profile/${message.sender_id}">
+          <img class="message-profile-pic" src="${imgSrc}" alt="${message.username}" />
+        </a>
+        <div class="message-content">
+          <p>
+            <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
+          </p>
+        </div>
+      `;
       
       socket.on("new_message", function (data) {
         showDesktopNotification("New Message", `${data.username}: ${data.text}`);
