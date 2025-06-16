@@ -1,39 +1,53 @@
+// script.js
+
+// Declare global otherUserId if not already defined
+if (typeof window.otherUserId === "undefined") {
+    window.otherUserId = null;
+}
+
+// DOMContentLoaded listener
+
+// Full previous script.js code with additions for private chat
+
 document.addEventListener("DOMContentLoaded", () => {
     let notificationCounts = {};
     const root = document.documentElement;
     const msgs = document.getElementById("messages");
-    const currentUserId = window.currentUserId || null;
-    const otherUserId = window.otherUserId || null;
+    const usersSection = document.getElementById("users");
     let shouldScroll = true;
+
     function escapeHtml(text) {
         const div = document.createElement("div");
         div.innerText = text;
         return div.innerHTML;
     }
+
     function isNearBottom() {
         return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
     }
-    const socket = io({
-        transports: ["websocket", "polling"],
-    });
+
+    const socket = io({ transports: ["websocket", "polling"] });
+
     socket.on("connect", () => {
         if (currentUserId) {
-            socket.emit("join", {
-                user_id: currentUserId,
-            });
+            socket.emit("join", { user_id: currentUserId });
         }
     });
+
     function toggleAway() {
         root.classList.toggle("away");
     }
+
     document.addEventListener("keydown", (event) => {
         if (event.ctrlKey && event.key.toLowerCase() === "i") {
             event.preventDefault();
             toggleAway();
         }
     });
+
     const profileButton = document.getElementById("profileButton");
     const profileMenu = document.getElementById("profileMenu");
+
     document.addEventListener("click", (e) => {
         if (
             profileMenu &&
@@ -43,66 +57,74 @@ document.addEventListener("DOMContentLoaded", () => {
             profileMenu.classList.remove("open");
         }
     });
-    document.addEventListener("click", () => {
-        if (profileMenu) profileMenu.classList.remove("open");
-    });
+
     const notificationButton = document.getElementById("notificationButton");
     const notificationMenu = document.getElementById("notificationMenu");
     const notificationBadge = document.getElementById("badge");
     const notificationStatus = document.getElementById("notification-status");
     const notificationsList = document.getElementById("notifications");
     const clearNotifications = document.getElementById("clearNotifications");
+
     let notificationCount = 0;
+
     function updateTitleWithNotifications(count) {
         document.title =
             count > 0 ? `Home (${count}) - Google Drive` : `Home - Google Drive`;
     }
+
     async function fetchNotifications() {
-        const res = await fetch("/get_notifications");
-        const data = await res.json();
-        notificationsList.innerHTML = "";
-        data.forEach((notification) => {
-            const li = document.createElement("li");
-            if (notification.type === "private_message" && notification.data) {
-                const a = document.createElement("a");
-                a.href = `/private_chat/${notification.data.sender_id}`;
-                a.textContent = notification.content;
-                li.appendChild(a);
-            } else {
-                li.textContent = notification.content;
-            }
-            if (notification.read) {
-                li.classList.add("read");
-            }
-            notificationsList.appendChild(li);
-        });
-        notificationCount = data.filter((n) => !n.read).length;
-        notificationBadge.textContent = notificationCount;
-        updateTitleWithNotifications(notificationCount);
-        if (notificationCount > 0) {
-            notificationBadge.classList.add("visible");
-            notificationStatus.textContent = `You have ${notificationCount} new notification${
-        notificationCount > 1 ? "s" : ""
-      }`;
-        } else {
-            notificationBadge.classList.remove("visible");
-            notificationStatus.textContent = "No notifications";
-        }
-        const counts = {};
-        data.forEach((notification) => {
-            if (
-                notification.type === "private_message" &&
-                notification.data &&
-                !notification.read
-            ) {
-                const senderId = notification.data.sender_id;
-                if (senderId) {
-                    counts[senderId] = (counts[senderId] || 0) + 1;
+        try {
+            const res = await fetch("/get_notifications");
+            const data = await res.json();
+            notificationsList.innerHTML = "";
+
+            data.forEach((notification) => {
+                const li = document.createElement("li");
+                if (notification.type === "private_message" && notification.data) {
+                    const a = document.createElement("a");
+                    a.href = `/private_chat/${notification.data.sender_id}`;
+                    a.textContent = notification.content;
+                    li.appendChild(a);
+                } else {
+                    li.textContent = notification.content;
                 }
+                if (notification.read) {
+                    li.classList.add("read");
+                }
+                notificationsList.appendChild(li);
+            });
+
+            notificationCount = data.filter((n) => !n.read).length;
+            notificationBadge.textContent = notificationCount;
+            updateTitleWithNotifications(notificationCount);
+
+            if (notificationCount > 0) {
+                notificationBadge.classList.add("visible");
+                notificationStatus.textContent = `You have ${notificationCount} new notification${notificationCount > 1 ? "s" : ""}`;
+            } else {
+                notificationBadge.classList.remove("visible");
+                notificationStatus.textContent = "No notifications";
             }
-        });
-        notificationCounts = counts;
+
+            const counts = {};
+            data.forEach((notification) => {
+                if (
+                    notification.type === "private_message" &&
+                    notification.data &&
+                    !notification.read
+                ) {
+                    const senderId = notification.data.sender_id;
+                    if (senderId) {
+                        counts[senderId] = (counts[senderId] || 0) + 1;
+                    }
+                }
+            });
+            notificationCounts = counts;
+        } catch (err) {
+            console.error("Notification fetch failed:", err);
+        }
     }
+
     if (notificationButton && notificationMenu) {
         notificationButton.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -117,18 +139,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
     document.addEventListener("click", (e) => {
-        if (notificationMenu?.classList.contains("open")) {
-            if (!notificationMenu.contains(e.target)) {
-                notificationMenu.classList.remove("open");
-            }
+        if (notificationMenu?.classList.contains("open") && !notificationMenu.contains(e.target)) {
+            notificationMenu.classList.remove("open");
         }
     });
+
     if (clearNotifications) {
         clearNotifications.addEventListener("click", () => {
-            fetch("/clear_notifications", {
-                method: "POST",
-            }).then(() => {
+            fetch("/clear_notifications", { method: "POST" }).then(() => {
                 notificationsList.innerHTML = "";
                 notificationCount = 0;
                 notificationBadge.textContent = "0";
@@ -139,17 +159,18 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     }
+
     setInterval(() => {
         if (!notificationMenu?.classList.contains("open")) {
             fetchNotifications();
         }
     }, 5000);
+
     fetchNotifications();
+
     socket.on("new_public_message", (data) => {
         const msgElem = document.createElement("p");
-        msgElem.innerHTML = `<a href="/profile/${data.sender_id}"><strong>${data.username}</strong></a> (${
-      data.timestamp
-    }): ${escapeHtml(data.text)}`;
+        msgElem.innerHTML = `<a href="/profile/${data.sender_id}"><strong>${data.username}</strong></a> (${data.timestamp}): ${escapeHtml(data.text)}`;
         if (msgs) {
             msgs.appendChild(msgElem);
             if (isNearBottom()) {
@@ -157,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+
     function fetchUsersList() {
         if (window.location.pathname === '/suggestions') return;
         fetch("/get_users")
@@ -173,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     img.className = "user-profile-pic";
                     img.src = `/static/users/${user.id}.png`;
                     img.alt = user.username;
-                    img.onerror = function() {
+                    img.onerror = function () {
                         this.src = "/static/123.png";
                     };
                     const userInfo = document.createElement("div");
@@ -202,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
     }
+
     socket.on('user_status_change', (data) => {
         const userLinks = document.querySelectorAll(`#users a[href="/private_chat/${data.user_id}"]`);
         userLinks.forEach(link => {
@@ -211,6 +234,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    setInterval(fetchUsersList, 1000);
+
     if (msgs) {
         msgs.scrollTop = msgs.scrollHeight;
         const observer = new MutationObserver(() => {
@@ -218,32 +244,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 msgs.scrollTop = msgs.scrollHeight;
             }
         });
-        observer.observe(msgs, {
-            childList: true,
-        });
+        observer.observe(msgs, { childList: true });
         msgs.addEventListener("scroll", () => {
             shouldScroll = isNearBottom();
         });
     }
-    const profileBtn = document.getElementById("profileButton");
-    const profileMn = document.getElementById("profileMenu");
-    if (profileBtn) {
-        profileBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            profileMn.classList.toggle("open");
-            if (window.isAdmin && !document.getElementById("adminLink")) {
-                const dashboardLi = document.createElement("li");
-                const dashboardLink = document.createElement("a");
-                dashboardLink.href = "/admin";
-                dashboardLink.textContent = "Dashboard";
-                dashboardLink.id = "adminLink";
-                dashboardLi.appendChild(dashboardLink);
-                profileMn.querySelector("ul").prepend(dashboardLi);
+
+    if (usersSection) {
+        usersSection.scrollTop = 0;
+    }
+
+    if (window.otherUserId) {
+        const privateForm = document.getElementById("form");
+        privateForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const input = document.getElementById("messagePlace");
+            const text = input.value;
+            if (!text) return;
+            try {
+                const res = await fetch(`/send_private/${window.otherUserId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `message=${encodeURIComponent(text)}`
+                });
+                if (res.ok) input.value = "";
+                else alert("Message failed to send.");
+            } catch (err) {
+                console.error("Failed to send message:", err);
             }
         });
     }
-    fetchNotifications();
-    setInterval(fetchNotifications, 1000);
-    fetchUsersList();
-    setInterval(fetchUsersList, 1000);
-  });
+});

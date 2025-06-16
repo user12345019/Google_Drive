@@ -1,195 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Home - Google Drive</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png" />
-    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  </head>
-  <body>
-    <div id="appContainer">
-      <div id="profileMenuContainer">
-        <button id="profileButton" aria-label="User Profile">
-          <img class="profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images  }}" alt="{{ user.username }}" />
-        </button>
-        <div id="profileMenu">
-          <ul>
-            {% if is_admin %}
-            <li><a href="/admin">Dashboard</a></li>
-            {% endif %}
-            <li><a href="/profile/{{ user.id }}">Profile</a></li>
-            <li><a href="/suggestions">Suggestions</a></li>
-            <li><a href="/logout">Logout</a></li>
-          </ul>
-        </div>
-      </div>
-      <div id="notificationContainer">
-        <button id="notificationButton">
-          <i class="fas fa-bell"></i>
-          <span id="badge">0</span>
-        </button>
-        <div id="notificationMenu">
-          <div class="header">
-            <h2>Notifications</h2>
-            <button id="clearNotifications">Clear All</button>
-          </div>
-          <p id="notification-status">No notifications</p>
-          <ul id="notifications" class="notifications-list"></ul>
-        </div>
-      </div>
-      <h1 id="title">JIOF</h1>
-      <div id="content">
-        <div id="users">
-          <h2>Users</h2>
-          <ul>
-            {% for user in users %}
-            <li>
-              <a href="/private_chat/{{ user.id }}">
-                <img class="user-profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
-                {{ user.username }}
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div id="mainArea">
-          <div id="messages">
-            {% for message in messages %}
-            <div class="message-container">
-              <a href="/profile/{{ message.sender.id }}">
-                <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + message.sender.id|string + '.png') if message.sender.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ message.sender.username }}" />
-              </a>
-              <div class="message-content">
-                <p>
-                  <a href="/profile/{{ message.sender.id }}"><strong>{{ message.sender.username }}</strong></a> ({{
-                  message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br> {{
-                  message.message_text }}
-                </p>
-              </div>
+   <head>
+      <meta charset="UTF-8" />
+      <title>Home - Google Drive</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+      <link rel="icon" href="https://www.computerhope.com/issues/pictures/google-drive-logo.png" />
+      <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
+      <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+   </head>
+   <body>
+      <div id="appContainer">
+         <div id="profileMenuContainer">
+            <button id="profileButton" aria-label="User Profile">
+            <img class="profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images  }}" alt="{{ user.username }}" />
+            </button>
+            <div id="profileMenu">
+               <ul>
+                  {% if user.username == "admin" %}
+                  <li><a href="/admin">Dashboard</a></li>
+                  {% endif %}
+                  <li><a href="/profile/{{ user.id }}">Profile</a></li>
+                  <li><a href="/suggestions">Suggestions</a></li>
+                  <li><a href="/logout">Logout</a></li>
+               </ul>
             </div>
-            {% endfor %}
-          </div>
-          <form id="form" method="POST" action="/send">
-            <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required autofocus />
-            <input id="sendButton" type="submit" value="Send" aria-label="Send Message" />
-          </form>
-        </div>
+         </div>
+         <div id="notificationContainer">
+            <button id="notificationButton">
+            <i class="fas fa-bell"></i>
+            <span id="badge">0</span>
+            </button>
+            <div id="notificationMenu">
+               <div class="header">
+                  <h2>Notifications</h2>
+                  <button id="clearNotifications">Clear All</button>
+               </div>
+               <p id="notification-status">No notifications</p>
+               <ul id="notifications" class="notifications-list"></ul>
+            </div>
+         </div>
+         <h1 id="title">JIOF</h1>
+         <div id="content">
+            <div id="users">
+               <h2>Users</h2>
+               <ul>
+                  {% for user in users %}
+                  <li>
+                     <a href="/private_chat/{{ user.id }}">
+                     <img class="user-profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
+                     {{ user.username }}
+                     </a>
+                  </li>
+                  {% endfor %}
+               </ul>
+            </div>
+            <div id="mainArea">
+               <div id="messages">
+                  {% for message in messages %}
+                  <div class="message-container">
+                     <a href="/profile/{{ message.sender.id }}">
+                     <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + message.sender.id|string + '.png') if message.sender.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ message.sender.username }}" />
+                     </a>
+                     <div class="message-content">
+                        <p>
+                           <a href="/profile/{{ message.sender.id }}"><strong>{{ message.sender.username }}</strong></a> ({{
+                           message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br> {{
+                           message.message_text }}
+                        </p>
+                     </div>
+                  </div>
+                  {% endfor %}
+               </div>
+               <form id="form" method="POST" action="/send">
+                  <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required autofocus />
+                  <input id="sendButton" type="submit" value="Send" aria-label="Send Message" />
+               </form>
+            </div>
+         </div>
       </div>
-    </div>
-    <img
-      id="decoyImage"
-      src="/static/123.png"
-      style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
-    <script>
-      const userImages = {{ user_images|tojson }};
-      const currentUserId = {{ user.id }};
-      const root = document.documentElement;
-      const socket = io();
-
-      function toggleAway() {
-        root.classList.toggle("away");
-      }
-
-      document.addEventListener("keydown", function (event) {
-        if (event.ctrlKey && event.key.toLowerCase() === "i") {
-          event.preventDefault();
-          toggleAway();
-        }
-      });
-
-      window.addEventListener("DOMContentLoaded", () => {
-        const msgs = document.getElementById("messages");
-        msgs.scrollTop = msgs.scrollHeight;
-
-        function isNearBottom() {
-          return msgs.scrollHeight - msgs.scrollTop <= msgs.clientHeight + 100;
-        }
-
-        let shouldScroll = isNearBottom();
-
-        const observer = new MutationObserver(() => {
-          if (shouldScroll) {
-            msgs.scrollTop = msgs.scrollHeight;
-          }
-        });
-
-        observer.observe(msgs, { childList: true });
-
-        msgs.addEventListener("scroll", () => {
-          shouldScroll = isNearBottom();
-        });
-
-        if ("Notification" in window) {
-          Notification.requestPermission();
-        }
-      });
-
-      const profileButton = document.getElementById("profileButton");
-      const profileMenu = document.getElementById("profileMenu");
-
-      profileButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        profileMenu.classList.toggle("open");
-      });
-
-      document.addEventListener("click", () => {
-        profileMenu.classList.remove("open");
-      });
-
-      function fetchMessages() {
-        fetch("/get_messages", { credentials: 'include' })
-          .then((response) => response.json())
-          .then((data) => {
-            const container = document.getElementById("messages");
-            container.innerHTML = "";
-            data.forEach((message) => {
-              const hasProfilePic = userImages.includes(`${message.sender_id}.png`);
-              const imgSrc = hasProfilePic ? `/static/users/${message.sender_id}.png` : '/static/123.png';
-              const msgElem = document.createElement("div");
-              msgElem.className = "message-container";
-              msgElem.innerHTML = `
-                <a href="/profile/${message.sender_id}">
-                  <img class="message-profile-pic" src="${imgSrc}" alt="${message.username}" />
-                </a>
-                <div class="message-content">
-                  <p>
-                    <a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br> ${message.text}
-                  </p>
-                </div>
-              `;
-              container.appendChild(msgElem);
-            });
-          })
-          .catch((error) => console.error("Error fetching messages:", error));
-      }
-
-      function showDesktopNotification(title, body) {
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(title, {
-            body: body,
-            icon: "/static/favicon.ico"
+      <img
+         id="decoyImage"
+         src="/static/123.png"
+         style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 9999;" />
+         <script>
+          document.addEventListener("DOMContentLoaded", () => {
+              const profileButton = document.getElementById("profileButton");
+              const profileMenu = document.getElementById("profileMenu");
+              if (profileButton && profileMenu) {
+                  profileButton.addEventListener("click", (e) => {
+                      e.stopPropagation();
+                      profileMenu.classList.toggle("open");
+                      console.log("Profile menu toggled, open:", profileMenu.classList.contains("open"));
+                      if (window.isAdmin && !document.getElementById("adminLink")) {
+                          const dashboardLi = document.createElement("li");
+                          const dashboardLink = document.createElement("a");
+                          dashboardLink.href = "/admin";
+                          dashboardLink.textContent = "Dashboard";
+                          dashboardLink.id = "adminLink";
+                          dashboardLi.appendChild(dashboardLink);
+                          profileMenu.querySelector("ul").prepend(dashboardLi);
+                      }
+                  });
+                  document.addEventListener("click", (e) => {
+                      if (
+                          profileMenu.classList.contains("open") &&
+                          !profileMenu.contains(e.target) &&
+                          e.target !== profileButton &&
+                          !profileButton.contains(e.target)
+                      ) {
+                          profileMenu.classList.remove("open");
+                      }
+                  });
+              } else {
+                  console.error("profileButton or profileMenu not found in DOM");
+              }
           });
-        }
-      }
-
-      socket.on("new_message", function (data) {
-        showDesktopNotification("New Message", `${data.username}: ${data.text}`);
-        fetchMessages();
-      });
-
-      socket.on("new_private_message", function (data) {
-        showDesktopNotification("New Private Message", `${data.sender}: ${data.text}`);
-      });
-
-      socket.on("new_notification", function (data) {
-        showDesktopNotification("New Notification", data.content);
-      });
-
-      setInterval(fetchMessages, 500);
-      fetchMessages();
-    </script>
-    <script defer src="{{ url_for('static', filename='script.js') }}"></script>
-  </body>
+      </script>
+      <script>
+          window.currentUserId = {{ user.id|tojson }};
+          window.isAdmin = {{ user.username == "admin" ? 'true' : 'false' }};
+          window.userImages = {{ user_images|tojson }};
+      </script>
+      <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+   </body>
 </html>

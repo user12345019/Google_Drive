@@ -210,9 +210,11 @@ def get_messages():
     return jsonify(messages_data)
 
 @app.route("/get_private_messages/<int:user_id>")
-@login_required
 def get_private_messages(user_id):
-    current_user_id = session["user_id"]
+    current_user_id = session.get("user_id")
+    if not current_user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
     messages = (
         PrivateMessage.query.filter(
             (
@@ -227,13 +229,15 @@ def get_private_messages(user_id):
         .order_by(PrivateMessage.timestamp)
         .all()
     )
+
     messages_data = [
         {
-            "sender": msg.sender.username,
-            "text": msg.message_text,
-            "timestamp": msg.timestamp.strftime("%Y-%m-%d %H:%M"),
+            "sender_id": message.sender_id,
+            "sender": message.sender.username,
+            "text": message.message_text,
+            "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }
-        for msg in messages
+        for message in messages
     ]
     return jsonify(messages_data)
 
