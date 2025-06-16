@@ -200,6 +200,7 @@ def get_messages():
     messages = Message.query.order_by(Message.timestamp).all()
     messages_data = [
         {
+            "sender_id": message.sender.id,  # <--- Add this line
             "username": message.sender.username,
             "text": message.message_text,
             "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M"),
@@ -657,5 +658,9 @@ def handle_disconnect():
 
 
 
+
+
 if __name__ == "__main__":
-    socketio.run(app, debug=True, port=5002)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("RENDER", "") == ""
+    socketio.run(app, host="0.0.0.0", port=port, debug=debug)
