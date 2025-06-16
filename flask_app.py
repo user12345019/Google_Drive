@@ -35,22 +35,19 @@ app.config["UPLOAD_FOLDER"] = os.path.join(os.path.dirname(os.path.abspath(__fil
 db = SQLAlchemy(app)
 socketio = SocketIO(app)
 
-# Create upload folder if it doesn't exist
+
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-# Track online users
+
 online_users = set()
 
 def generate_random_pattern_image(size=200):
-    # Create a new image with a white background
     image = Image.new('RGB', (size, size), 'white')
     draw = ImageDraw.Draw(image)
     
-    # Generate random colors
     num_colors = random.randint(3, 5)
     colors = []
     for _ in range(num_colors):
-        # Generate colors in HSV space for better color harmony
         h = random.random()
         s = random.uniform(0.5, 0.8)
         v = random.uniform(0.7, 0.9)
@@ -662,7 +659,7 @@ def handle_disconnect():
         if user:
             user.last_seen = datetime.now(pytz.utc).astimezone(timezone)
             db.session.commit()
-            print(f"Disconnect: {user.username} last_seen set to {user.last_seen}")  # Debug log
+            print(f"Disconnect: {user.username} last_seen set to {user.last_seen}")  
         online_users.discard(session['user_id'])
         socketio.emit('user_status_change', {
             'user_id': session['user_id'],

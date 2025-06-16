@@ -7,7 +7,6 @@
     overflow: hidden;
 }
 
-/* Stripe pattern */
 .pattern-stripes {
     background: repeating-linear-gradient(
         var(--angle),
@@ -15,7 +14,7 @@
     );
 }
 
-/* Dots pattern */
+
 .pattern-dots {
     background-color: var(--base-color);
     background-image: radial-gradient(
@@ -26,7 +25,7 @@
     background-size: var(--dot-spacing) var(--dot-spacing);
 }
 
-/* Gradient pattern */
+
 .pattern-gradient {
     background: linear-gradient(
         var(--angle),

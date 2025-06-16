@@ -1,5 +1,4 @@
 @charset 'UTF-8';
-
 html,
 body {
   margin: 0;
@@ -10,39 +9,32 @@ body {
   color: #cadfee;
   overflow-x: hidden;
 }
-
 h1,
 h2,
 p,
 li {
   color: #953434;
 }
-
 h1 {
   text-align: center;
   text-shadow: white 0px 0px 5px;
 }
-
 #title,
 #content {
   display: flex;
   justify-content: center;
 }
-
 #appContainer {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
-
 html.away #appContainer {
   display: none !important;
 }
-
 html.away #decoyImage {
   display: block !important;
 }
-
 #decoyImage {
   display: none;
   position: fixed;
@@ -53,7 +45,6 @@ html.away #decoyImage {
   object-fit: cover;
   z-index: 9999;
 }
-
 #content {
   display: flex;
   gap: 20px;
@@ -62,56 +53,47 @@ html.away #decoyImage {
   flex: 1;
   min-height: 0;
 }
-
 #users {
   background-color: #cadfee;
-  border-radius: 8px; /* Rounds all corners */
+  border-radius: 8px; 
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   padding: 10px 0;
   width: 300px;
   flex-shrink: 0;
   max-height: calc(100vh - 145px);
-  overflow-y: auto; /* Enables vertical scrolling */
-  scrollbar-width: thin; /* For Firefox: thin scrollbar */
-  scrollbar-color: #953434 #cadfee; /* For Firefox: thumb and track colors */
-  position: relative; /* Prevents overlap issues */
+  overflow-y: auto; 
+  scrollbar-width: thin; 
+  scrollbar-color: #953434 #cadfee; 
+  position: relative; 
 }
-
-/* WebKit browsers (Chrome, Safari, Edge) */
 #users::-webkit-scrollbar {
-  width: 6px; /* Thinner scrollbar */
+  width: 6px; 
 }
-
 #users::-webkit-scrollbar-track {
   background: #cadfee;
-  border-radius: 8px; /* Matches section radius */
-  margin-top: 8px; /* Space at top for rounding */
-  margin-bottom: 8px; /* Space at bottom for rounding */
+  border-radius: 8px; 
+  margin-top: 8px; 
+  margin-bottom: 8px; 
 }
-
 #users::-webkit-scrollbar-thumb {
   background: #953434;
-  border-radius: 8px; /* Rounded thumb */
-  border: 1px solid #cadfee; /* Border enhances visibility */
+  border-radius: 8px; 
+  border: 1px solid #cadfee; 
 }
-
 #users::-webkit-scrollbar-thumb:hover {
-  background: #600d27; /* Hover effect */
+  background: #600d27; 
 }
-
 #users h2 {
   margin: 0 0 10px;
   font-size: 18px;
   text-align: center;
   color: #293761;
 }
-
 #users ul {
   list-style: none;
   margin: 0;
   padding: 0 10px;
 }
-
 #users li {
   background: #fff;
   margin-bottom: 8px;
@@ -119,12 +101,10 @@ html.away #decoyImage {
   border-radius: 4px;
   transition: background-color 0.3s, transform 0.2s;
 }
-
 #users li:hover {
   background-color: #f0f8ff;
   transform: translateX(4px);
 }
-
 #users a {
   color: #293761;
   text-decoration: none;
@@ -133,25 +113,22 @@ html.away #decoyImage {
   align-items: center;
   gap: 10px;
   position: relative;
-  padding-right: 28px; /* Increased padding for status dot */
+  padding-right: 28px; 
 }
-
 .user-info {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
-  padding-right: 16px; /* Extra padding to prevent text-dot overlap */
+  padding-right: 16px; 
 }
-
 .username {
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%; /* Ensures ellipsis for long names */
+  max-width: 100%; 
 }
-
 .last-seen {
   font-size: 0.8em;
   color: #666;
@@ -161,7 +138,6 @@ html.away #decoyImage {
   text-overflow: ellipsis;
   max-width: 100%;
 }
-
 .user-profile-pic {
   width: 30px;
   height: 30px;
@@ -171,77 +147,65 @@ html.away #decoyImage {
   background-color: white;
   padding: 2px;
 }
-
 #users a:hover {
   text-decoration: none;
 }
-
 #users li:hover .user-profile-pic {
   border-color: #600d27;
   transform: scale(1.05);
   transition: all 0.2s ease;
 }
-
 .online-status {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: #4CAF50;
   position: absolute;
-  right: 10px; /* Moved further from text to avoid ellipsis overlap */
+  right: 10px; 
   top: 50%;
   transform: translateY(-50%);
   transition: background-color 0.3s ease;
 }
-
 .online-status.offline {
   background-color: #ccc;
 }
-
 #mainArea {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
-
 #messages {
   height: calc(100vh - 210px);
-  overflow-y: auto; /* Enables vertical scrolling */
+  overflow-y: auto; 
   padding: 15px;
-  border-radius: 10px; /* Rounds all corners */
+  border-radius: 10px; 
   background-color: #cadfee;
   color: #cadfee;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  scrollbar-width: thin; /* For Firefox: thin scrollbar */
-  scrollbar-color: #953434 #cadfee; /* For Firefox: thumb and track colors */
-  position: relative; /* Prevents overlap issues */
+  scrollbar-width: thin; 
+  scrollbar-color: #953434 #cadfee; 
+  position: relative; 
 }
-
-/* WebKit browsers (Chrome, Safari, Edge) */
 #messages::-webkit-scrollbar {
-  width: 6px; /* Thinner scrollbar */
+  width: 6px; 
 }
-
 #messages::-webkit-scrollbar-track {
   background: #cadfee;
-  border-radius: 10px; /* Matches section radius */
-  margin-top: 10px; /* Space at top for rounding */
-  margin-bottom: 10px; /* Space at bottom for rounding */
+  border-radius: 10px; 
+  margin-top: 10px; 
+  margin-bottom: 10px; 
 }
-
 #messages::-webkit-scrollbar-thumb {
   background: #953434;
-  border-radius: 10px; /* Rounded thumb */
-  border: 1px solid #cadfee; /* Border enhances visibility */
+  border-radius: 10px; 
+  border: 1px solid #cadfee; 
 }
-
 #messages::-webkit-scrollbar-thumb:hover {
-  background: #600d27; /* Hover effect */
+  background: #600d27; 
 }
-
 #messages p {
   background-color: white;
   color: #5e0000;
@@ -251,22 +215,18 @@ html.away #decoyImage {
   max-width: 80%;
   word-wrap: break-word;
 }
-
 #messages p a {
   text-decoration: none;
   color: inherit;
 }
-
 #messages p strong {
   color: #600d27;
 }
-
 #form {
   display: flex;
   margin-top: 15px;
   gap: 10px;
 }
-
 #messagePlace {
   flex: 1;
   padding: 10px;
@@ -277,18 +237,15 @@ html.away #decoyImage {
   font-size: 16px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
 }
-
 #messagePlace::placeholder {
   color: #953434;
   opacity: 0.7;
 }
-
 #messagePlace:focus {
   border: solid #5e0000 2.5px;
   outline: none;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
-
 #sendButton {
   background-color: #616b22;
   color: #cadfee;
@@ -300,11 +257,9 @@ html.away #decoyImage {
   font-weight: bold;
   transition: background-color 0.3s ease;
 }
-
 #sendButton:hover {
   background-color: #444b18;
 }
-
 #suggestionPlace {
   flex: 1;
   padding: 10px;
@@ -315,31 +270,26 @@ html.away #decoyImage {
   font-size: 16px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
 }
-
 #suggestionPlace::placeholder {
   color: #953434;
   opacity: 0.7;
 }
-
 #suggestionPlace:focus {
   border: solid #5e0000 2.5px;
   outline: none;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
-
 #profileMenuContainer {
   position: absolute;
   top: 20px;
   right: 20px;
 }
-
 #profileButton {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
 }
-
 .profile-pic {
   width: 40px;
   height: 40px;
@@ -349,13 +299,11 @@ html.away #decoyImage {
   background-color: white;
   padding: 2px;
 }
-
 #profileButton:hover .profile-pic {
   border-color: #600d27;
   transform: scale(1.05);
   transition: all 0.2s ease;
 }
-
 #profileMenu {
   display: none;
   position: absolute;
@@ -367,44 +315,35 @@ html.away #decoyImage {
   min-width: 150px;
   z-index: 1000;
 }
-
 #profileMenu.open {
   display: block;
 }
-
 #profileMenu ul {
   list-style: none;
   margin: 0;
   padding: 10px 0;
 }
-
 #profileMenu li {
   padding: 8px 12px;
   transition: background-color 0.3s;
 }
-
 #profileMenu li:hover {
   background-color: #f0f8ff;
 }
-
 #profileMenu a {
   color: #293761;
   text-decoration: none;
   font-weight: 500;
 }
-
 #profileMenu a:hover {
   text-decoration: underline;
 }
-
 #notificationContainer {
   position: absolute;
   top: 20px;
   right: 80px;
   z-index: 1000;
 }
-
-/* Notification button, styled similarly to the profile button */
 #notificationButton {
   background: none;
   border: none;
@@ -412,17 +351,14 @@ html.away #decoyImage {
   padding-top: 5px;
   position: relative;
 }
-
 #notificationButton i {
   font-size: 30px;
   color: white;
   transition: transform 0.2s;
 }
-
 #notificationButton:hover i {
   transform: scale(1.1);
 }
-
 #badge {
   position: absolute;
   top: 0px;
@@ -438,13 +374,9 @@ html.away #decoyImage {
   font-size: 12px;
   font-weight: bold;
 }
-
-/* Show the badge when there are notifications */
 #badge.visible {
   display: flex;
 }
-
-/* Notification menu, a dropdown similar to the profile menu */
 #notificationMenu {
   display: none;
   position: absolute;
@@ -456,13 +388,9 @@ html.away #decoyImage {
   min-width: 250px;
   z-index: 1000;
 }
-
-/* Display the menu when open */
 #notificationMenu.open {
   display: block;
 }
-
-/* Header inside the notification menu, containing title and clear button */
 #notificationMenu .header {
   display: flex;
   justify-content: space-between;
@@ -470,15 +398,11 @@ html.away #decoyImage {
   padding: 10px 15px;
   border-bottom: 1px solid #293761;
 }
-
-/* Title styling within the header */
 #notificationMenu .header h2 {
   margin: 0;
   font-size: 18px;
   color: #293761;
 }
-
-/* Clear notifications button, styled like the send button */
 #clearNotifications {
   background-color: #616b22;
   color: #cadfee;
@@ -489,21 +413,15 @@ html.away #decoyImage {
   font-size: 14px;
   transition: background-color 0.3s ease;
 }
-
-/* Hover effect for the clear button */
 #clearNotifications:hover {
   background-color: #444b18;
 }
-
-/* Notification status message */
 #notification-status {
   padding: 10px 15px;
   text-align: center;
   color: #293761;
   font-size: 14px;
 }
-
-/* Notification list container */
 #notifications {
   list-style: none;
   margin: 0;
@@ -511,8 +429,6 @@ html.away #decoyImage {
   max-height: 300px;
   overflow-y: auto;
 }
-
-/* Individual notification items */
 #notifications li {
   background: #fff;
   margin: 5px 10px;
@@ -520,24 +436,17 @@ html.away #decoyImage {
   border-radius: 4px;
   transition: background-color 0.3s;
 }
-
-/* Hover effect for notification items */
 #notifications li:hover {
   background-color: #f0f8ff;
 }
-
-/* Links within notification items */
 #notifications li a {
   color: #293761;
   text-decoration: none;
   font-weight: 500;
 }
-
-/* Hover effect for links within notification items */
 #notifications li a:hover {
   text-decoration: underline;
 }
-
 #backBtn {
   background-color: #cadfee;
   border-radius: 8px;
@@ -547,20 +456,17 @@ html.away #decoyImage {
   overflow-y: auto;
   flex-shrink: 0;
 }
-
 #backBtn h2 {
   margin: 0 0 10px;
   font-size: 18px;
   text-align: center;
   color: #293761;
 }
-
 #backBtn ul {
   list-style: none;
   margin: 0;
   padding: 0 10px;
 }
-
 #backBtn li {
   background: #fff;
   margin-bottom: 8px;
@@ -568,23 +474,18 @@ html.away #decoyImage {
   border-radius: 4px;
   transition: background-color 0.3s, transform 0.2s;
 }
-
 #backBtn li:hover {
   background-color: #f0f8ff;
   transform: translate ~X(4px);
 }
-
 #backBtn a {
   color: #293761;
   text-decoration: none;
   font-weight: 500;
 }
-
 #backBtn a:hover {
   text-decoration: underline;
 }
-
-/* Media query adjustments for smaller screens */
 @media (max-width: 600px) {
   #profileMenu,
   #notificationMenu {
@@ -592,47 +493,39 @@ html.away #decoyImage {
     right: 10px;
     width: auto;
   }
-
   #notificationContainer {
     top: 20px;
     right: 70px;
   }
-
   #content {
     flex-direction: column;
     align-items: center;
     padding: 10px;
     gap: 10px;
   }
-
   #users {
     width: 90%;
     max-height: 30vh;
   }
-
   #mainArea {
     width: 90%;
     height: 60vh;
   }
-
   #messages {
     height: auto;
     margin-bottom: 10px;
   }
-
   #messagePlace,
   #sendButton {
     font-size: 13px;
   }
 }
-
 .message-container {
   display: flex;
   align-items: flex-start;
   margin-bottom: 8px;
   padding: 5px;
 }
-
 .message-profile-pic {
   width: 40px;
   height: 40px;
@@ -646,11 +539,9 @@ html.away #decoyImage {
   background-color: white;
   padding: 2px;
 }
-
 .message-container a:hover .message-profile-pic {
   transform: scale(1.1);
 }
-
 .message-content {
   flex-grow: 1;
   background-color: white;
@@ -658,7 +549,6 @@ html.away #decoyImage {
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
-
 .message-content p {
   margin: 0;
   line-height: 1.4;

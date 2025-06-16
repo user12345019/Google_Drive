@@ -200,34 +200,32 @@
     </script>
     <script defer src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-      // Request notification permission when the page loads
+    
       document.addEventListener('DOMContentLoaded', function() {
         if ("Notification" in window) {
           Notification.requestPermission();
         }
       });
 
-      // Function to show desktop notification
+      
       function showDesktopNotification(title, body) {
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification(title, {
             body: body,
-            icon: '/static/favicon.ico'  // You can change this to your app's icon
+            icon: '/static/favicon.ico'  
           });
         }
       }
 
-      // Socket.IO event handlers
       socket.on('new_private_message', function(data) {
-        // Show desktop notification for new private messages
+        
         showDesktopNotification('New Private Message', `${data.sender}: ${data.text}`);
-        // ... existing private message handling code ...
+
       });
 
       socket.on('new_notification', function(data) {
-        // Show desktop notification for new notifications
+     
         showDesktopNotification('New Notification', data.content);
-        // ... existing notification handling code ...
       });
     </script>
   </body>
