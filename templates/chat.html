@@ -117,10 +117,10 @@
           });
       </script>
       <script>
-          window.currentUserId = {{ user.id|tojson }};
-          window.isAdmin = {{ user.username == "admin" ? 'true' : 'false' }};
-          window.userImages = {{ user_images|tojson }};
-      </script>
+         window.currentUserId = {{ user.id|tojson }};
+         window.isAdmin = {% if user.username == "admin" %}true{% else %}false{% endif %};
+         window.userImages = {{ user_images|tojson }};
+     </script>
       <script defer src="{{ url_for('static', filename='script.js') }}"></script>
    </body>
 </html>
