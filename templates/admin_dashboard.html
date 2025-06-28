@@ -150,6 +150,41 @@
                </div>
             </details>
          </div>
+         <div class="card">
+            <details>
+               <summary>
+                  <h2>Issues</h2>
+               </summary>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>ID</th>
+                           <th>Sender</th>
+                           <th>Issue</th>
+                           <th>Timestamp</th>
+                           <th>Action</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {% for i in issues %}
+                        <tr>
+                           <td>{{ i.id }}</td>
+                           <td>{{ i.sender }}</td>
+                           <td>{{ i.text }}</td>
+                           <td>{{ i.timestamp }}</td>
+                           <td>
+                              <form action="{{ url_for('delete_issue', issue_id=i.id) }}" method="post">
+                                 <button type="submit">Delete</button>
+                              </form>
+                           </td>
+                        </tr>
+                        {% endfor %}
+                     </tbody>
+                  </table>
+               </div>
+            </details>
+         </div>
       </div>
       <div id="profileMenuContainer">
          <button id="profileButton" aria-label="User Profile">
@@ -162,12 +197,34 @@
                {% endif %}
                <li><a href="/profile/{{ user.id }}">Profile</a></li>
                <li><a href="/suggestions">Suggestions</a></li>
+               <li><a href="/issues">Issues</a></li>
                <li><a href="/logout">Logout</a></li>
             </ul>
          </div>
       </div>
       <script>
          document.addEventListener('DOMContentLoaded', () => {
+           const profileButton = document.getElementById("profileButton");
+           const profileMenu = document.getElementById("profileMenu");
+           if (profileButton && profileMenu) {
+               profileButton.addEventListener("click", (e) => {
+                   e.stopPropagation();
+                   profileMenu.classList.toggle("open");
+                   console.log("Profile menu toggled, open:", profileMenu.classList.contains("open"));
+               });
+               document.addEventListener("click", (e) => {
+                   if (
+                       profileMenu.classList.contains("open") &&
+                       !profileMenu.contains(e.target) &&
+                       e.target !== profileButton &&
+                       !profileButton.contains(e.target)
+                   ) {
+                       profileMenu.classList.remove("open");
+                   }
+               });
+           } else {
+               console.error("profileButton or profileMenu not found in DOM");
+           }
            
            document.querySelectorAll('.delete-user').forEach(btn => {
              btn.addEventListener('click', async (e) => {

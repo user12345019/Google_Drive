@@ -1,13 +1,8 @@
-// script.js
 
-// Declare global otherUserId if not already defined
 if (typeof window.otherUserId === "undefined") {
     window.otherUserId = null;
 }
 
-// DOMContentLoaded listener
-
-// Full previous script.js code with additions for private chat
 
 document.addEventListener("DOMContentLoaded", () => {
     let notificationCounts = {};
@@ -180,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function fetchUsersList() {
-        if (window.location.pathname === '/suggestions') return;
+        if (window.location.pathname === '/suggestions' || window.location.pathname === '/issues') return;
         fetch("/get_users")
             .then((response) => response.json())
             .then((data) => {

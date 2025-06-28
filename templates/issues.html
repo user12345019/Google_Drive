@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Suggestions - Google Drive</title>
+    <title>Issues - Google Drive</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -55,7 +55,7 @@
           <ul id="notifications" class="notifications-list"></ul>
         </div>
       </div>
-      <h1 id="title">Suggestions</h1>
+      <h1 id="title">Issues</h1>
       <div id="content">
         <div id="users">
           <h2>Back</h2>
@@ -69,35 +69,35 @@
         </div>
         <div id="mainArea">
           <div id="messages">
-            {% for suggestion in suggestions %}
-            <div class="message-container">
-              <a href="/profile/{{ suggestion.sender.id }}">
+            {% for issue in issues %}
+            <div class="message-container {% if issue.resolved %}resolved-issue{% endif %}">
+              <a href="/profile/{{ issue.sender.id }}">
                 <img
                   class="message-profile-pic"
-                  src="{{ url_for('static', filename='users/' + suggestion.sender.id|string + '.png') if suggestion.sender.id|string + '.png' in user_images else url_for('static', filename='123.png') }}"
-                  alt="{{ suggestion.sender.username }}"
+                  src="{{ url_for('static', filename='users/' + issue.sender.id|string + '.png') if issue.sender.id|string + '.png' in user_images else url_for('static', filename='123.png') }}"
+                  alt="{{ issue.sender.username }}"
                 />
               </a>
               <div class="message-content">
                 <p>
-                  <a href="/profile/{{ suggestion.sender.id }}"><strong>{{ suggestion.sender.username }}</strong></a> ({{ suggestion.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br>
-                  {{ suggestion.suggestion_text }}
-                  {% if suggestion.completed %}
+                  <a href="/profile/{{ issue.sender.id }}"><strong>{{ issue.sender.username }}</strong></a> ({{ issue.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br>
+                  {{ issue.issue_text }}
+                  {% if issue.resolved %}
                   ✅
                   {% elif user.username == "admin" %}
-                  <button onclick="markComplete({{ suggestion.id }})" class="complete-btn">Mark Complete</button>
+                  <button onclick="markResolved({{ issue.id }})" class="resolve-btn">Mark Resolved</button>
                   {% endif %}
                 </p>
               </div>
             </div>
             {% endfor %}
           </div>
-          <form id="form" method="POST" action="{{ url_for('send_suggestion') }}">
+          <form id="form" method="POST" action="{{ url_for('send_issue') }}">
             <input
-              id="suggestionPlace"
+              id="issuePlace"
               type="text"
-              name="suggestion"
-              placeholder="Type your suggestion..."
+              name="issue"
+              placeholder="Type your issue or bug report..."
               required
               autofocus
             />
@@ -105,7 +105,7 @@
               id="sendButton"
               type="submit"
               value="Send"
-              aria-label="Send Suggestion"
+              aria-label="Send Issue"
             />
           </form>
         </div>
@@ -155,10 +155,10 @@
           }
       });
 
-      function markComplete(id) {
-        fetch(`/complete_suggestion/${id}`, { method: "POST" })
+      function markResolved(id) {
+        fetch(`/resolve_issue/${id}`, { method: "POST" })
           .then(() => window.location.reload());
       }
     </script>
   </body>
-</html>
+</html> 

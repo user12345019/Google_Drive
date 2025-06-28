@@ -17,9 +17,264 @@
          rel="stylesheet"
          />
       <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-      <script defer src="{{ url_for('static', filename='script.js') }}"></script>
       <script>
         window.otherUserId = {{ other_user.id | tojson }};
+        window.currentUserId = {{ user.id | tojson }};
+        window.currentUsername = {{ user.username | tojson }};
+        window.otherUsername = {{ other_user.username | tojson }};
+        window.userImages = {{ user_images | tojson }};
+      </script>
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const profileButton = document.getElementById("profileButton");
+            const profileMenu = document.getElementById("profileMenu");
+            if (profileButton && profileMenu) {
+                profileButton.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    profileMenu.classList.toggle("open");
+                    console.log("Profile menu toggled, open:", profileMenu.classList.contains("open"));
+                });
+                document.addEventListener("click", (e) => {
+                    if (
+                        profileMenu.classList.contains("open") &&
+                        !profileMenu.contains(e.target) &&
+                        e.target !== profileButton &&
+                        !profileButton.contains(e.target)
+                    ) {
+                        profileMenu.classList.remove("open");
+                    }
+                });
+            } else {
+                console.error("profileButton or profileMenu not found in DOM");
+            }
+
+            const socket = io({ transports: ["websocket", "polling"] });
+            const messagesContainer = document.getElementById("messages");
+            const form = document.getElementById("form");
+            const input = document.getElementById("messagePlace");
+            socket.on("connect", () => {
+                console.log("Private chat WebSocket connected");
+                if (window.currentUserId) {
+                    socket.emit("join", { user_id: window.currentUserId });
+                }
+            });
+            socket.on("new_private_message", (data) => {
+                console.log("Received private message:", data);
+                if (data.sender_id === window.otherUserId || data.recipient_id === window.otherUserId) {
+                    const messageContainer = document.createElement("div");
+                    messageContainer.className = "message-container";
+                    
+                    const isOwnMessage = data.sender_id === window.currentUserId;
+                    
+                    const profileLink = document.createElement("a");
+                    profileLink.href = isOwnMessage ? `/profile/${window.currentUserId}` : `/profile/${window.otherUserId}`;
+                    
+                    const profilePic = document.createElement("img");
+                    profilePic.className = "message-profile-pic";
+                    const userId = isOwnMessage ? window.currentUserId : window.otherUserId;
+                    profilePic.src = `/static/users/${userId}.png`;
+                    profilePic.alt = isOwnMessage ? window.currentUsername : window.otherUsername;
+                    profilePic.onerror = function() {
+                        this.src = "/static/123.png";
+                    };
+                    
+                    profileLink.appendChild(profilePic);
+                    messageContainer.appendChild(profileLink);
+                    
+                    const messageContent = document.createElement("div");
+                    messageContent.className = "message-content";
+                    
+                    const messageText = document.createElement("p");
+                    const username = isOwnMessage ? "You" : window.otherUsername;
+                    const profileUrl = isOwnMessage ? `/profile/${window.currentUserId}` : `/profile/${window.otherUserId}`;
+                    
+                    messageText.innerHTML = `<a href="${profileUrl}"><strong>${username}</strong></a> (${data.timestamp}):<br>${escapeHtml(data.text)}`;
+                    
+                    messageContent.appendChild(messageText);
+                    messageContainer.appendChild(messageContent);
+                    
+                    messagesContainer.appendChild(messageContainer);
+                    
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            });
+
+            socket.on("connect_error", (error) => {
+                console.error("Private chat WebSocket connection error:", error);
+            });
+
+            function escapeHtml(text) {
+                const div = document.createElement("div");
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            const notificationButton = document.getElementById("notificationButton");
+            const notificationMenu = document.getElementById("notificationMenu");
+            const notificationBadge = document.getElementById("badge");
+            const notificationStatus = document.getElementById("notification-status");
+            const notificationsList = document.getElementById("notifications");
+            const clearNotifications = document.getElementById("clearNotifications");
+
+            let notificationCount = 0;
+            let notificationCounts = {};
+
+            function updateTitleWithNotifications(count) {
+                document.title = count > 0 ? `Private Chat (${count}) - Google Drive` : `Private Chat - Google Drive`;
+            }
+
+            async function fetchNotifications() {
+                try {
+                    const res = await fetch("/get_notifications");
+                    const data = await res.json();
+                    notificationsList.innerHTML = "";
+
+                    data.forEach((notification) => {
+                        const li = document.createElement("li");
+                        if (notification.type === "private_message" && notification.data) {
+                            const a = document.createElement("a");
+                            a.href = `/private_chat/${notification.data.sender_id}`;
+                            a.textContent = notification.content;
+                            li.appendChild(a);
+                        } else {
+                            li.textContent = notification.content;
+                        }
+                        if (notification.read) {
+                            li.classList.add("read");
+                        }
+                        notificationsList.appendChild(li);
+                    });
+
+                    notificationCount = data.filter((n) => !n.read).length;
+                    notificationBadge.textContent = notificationCount;
+                    updateTitleWithNotifications(notificationCount);
+
+                    if (notificationCount > 0) {
+                        notificationBadge.classList.add("visible");
+                        notificationStatus.textContent = `You have ${notificationCount} new notification${notificationCount > 1 ? "s" : ""}`;
+                    } else {
+                        notificationBadge.classList.remove("visible");
+                        notificationStatus.textContent = "No notifications";
+                    }
+
+                    const counts = {};
+                    data.forEach((notification) => {
+                        if (notification.type === "private_message" && notification.data && !notification.read) {
+                            const senderId = notification.data.sender_id;
+                            if (senderId) {
+                                counts[senderId] = (counts[senderId] || 0) + 1;
+                            }
+                        }
+                    });
+                    notificationCounts = counts;
+                } catch (err) {
+                    console.error("Notification fetch failed:", err);
+                }
+            }
+
+            if (notificationButton && notificationMenu) {
+                notificationButton.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const opening = !notificationMenu.classList.contains("open");
+                    notificationMenu.classList.toggle("open");
+                    if (opening) {
+                        fetch("/mark_notifications_read", { method: "POST" }).then(() => {
+                            fetchNotifications();
+                        });
+                    }
+                });
+            }
+
+            document.addEventListener("click", (e) => {
+                if (notificationMenu?.classList.contains("open") && !notificationMenu.contains(e.target)) {
+                    notificationMenu.classList.remove("open");
+                }
+            });
+
+            if (clearNotifications) {
+                clearNotifications.addEventListener("click", () => {
+                    fetch("/clear_notifications", { method: "POST" }).then(() => {
+                        notificationsList.innerHTML = "";
+                        notificationCount = 0;
+                        notificationBadge.textContent = "0";
+                        notificationBadge.classList.remove("visible");
+                        notificationStatus.textContent = "No notifications";
+                        notificationCounts = {};
+                        updateTitleWithNotifications(0);
+                    });
+                });
+            }
+
+            setInterval(() => {
+                if (!notificationMenu?.classList.contains("open")) {
+                    fetchNotifications();
+                }
+            }, 5000);
+
+            fetchNotifications();
+
+            let lastPrivateMessageCount = 0;
+            
+            async function fetchPrivateMessages() {
+                try {
+                    const response = await fetch(`/get_private_messages/${window.otherUserId}`);
+                    const messages = await response.json();
+                    
+                    if (messages.length > lastPrivateMessageCount) {
+                        messagesContainer.innerHTML = "";
+                        
+                        messages.forEach(message => {
+                            const messageContainer = document.createElement("div");
+                            messageContainer.className = "message-container";
+                            
+                            const isOwnMessage = message.sender_id === window.currentUserId;
+                            
+                            const profileLink = document.createElement("a");
+                            profileLink.href = isOwnMessage ? `/profile/${window.currentUserId}` : `/profile/${window.otherUserId}`;
+                            
+                            const profilePic = document.createElement("img");
+                            profilePic.className = "message-profile-pic";
+                            const userId = isOwnMessage ? window.currentUserId : window.otherUserId;
+                            profilePic.src = `/static/users/${userId}.png`;
+                            profilePic.alt = isOwnMessage ? window.currentUsername : window.otherUsername;
+                            profilePic.onerror = function() {
+                                this.src = "/static/123.png";
+                            };
+                            
+                            profileLink.appendChild(profilePic);
+                            messageContainer.appendChild(profileLink);
+                            
+                            const messageContent = document.createElement("div");
+                            messageContent.className = "message-content";
+                            
+                            const messageText = document.createElement("p");
+                            const username = isOwnMessage ? "You" : window.otherUsername;
+                            const profileUrl = isOwnMessage ? `/profile/${window.currentUserId}` : `/profile/${window.otherUserId}`;
+                            
+                            messageText.innerHTML = `<a href="${profileUrl}"><strong>${username}</strong></a> (${message.timestamp}):<br>${escapeHtml(message.text)}`;
+                            
+                            messageContent.appendChild(messageText);
+                            messageContainer.appendChild(messageContent);
+                            
+                            messagesContainer.appendChild(messageContainer);
+                        });
+                        
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        lastPrivateMessageCount = messages.length;
+                    }
+                } catch (error) {
+                    console.error("Error fetching private messages:", error);
+                }
+            }
+            
+            setInterval(fetchPrivateMessages, 2000);
+            
+            fetchPrivateMessages();
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
       </script>
    </head>
    <body>
@@ -53,6 +308,7 @@
                   {% endif %}
                   <li><a href="/profile/{{ user.id }}">Profile</a></li>
                   <li><a href="/suggestions">Suggestions</a></li>
+                  <li><a href="/issues">Issues</a></li>
                   <li><a href="/logout">Logout</a></li>
                </ul>
             </div>
@@ -137,3 +393,4 @@
       
    </body>
 </html>
+

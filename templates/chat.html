@@ -21,6 +21,7 @@
                   {% endif %}
                   <li><a href="/profile/{{ user.id }}">Profile</a></li>
                   <li><a href="/suggestions">Suggestions</a></li>
+                  <li><a href="/issues">Issues</a></li>
                   <li><a href="/logout">Logout</a></li>
                </ul>
             </div>
@@ -91,15 +92,6 @@
                       e.stopPropagation();
                       profileMenu.classList.toggle("open");
                       console.log("Profile menu toggled, open:", profileMenu.classList.contains("open"));
-                      if (window.isAdmin && !document.getElementById("adminLink")) {
-                          const dashboardLi = document.createElement("li");
-                          const dashboardLink = document.createElement("a");
-                          dashboardLink.href = "/admin";
-                          dashboardLink.textContent = "Dashboard";
-                          dashboardLink.id = "adminLink";
-                          dashboardLi.appendChild(dashboardLink);
-                          profileMenu.querySelector("ul").prepend(dashboardLi);
-                      }
                   });
                   document.addEventListener("click", (e) => {
                       if (
@@ -122,5 +114,112 @@
          window.userImages = {{ user_images|tojson }};
      </script>
       <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+      <script>
+         document.addEventListener("DOMContentLoaded", () => {
+             const socket = io({ transports: ["websocket", "polling"] });
+             const messagesContainer = document.getElementById("messages");
+             
+             socket.on("connect", () => {
+                 console.log("Chat page WebSocket connected");
+                 if (window.currentUserId) {
+                     socket.emit("join", { user_id: window.currentUserId });
+                 }
+             });
+             
+             socket.on("new_public_message", (data) => {
+                 console.log("Received new public message:", data);
+                 const messageContainer = document.createElement("div");
+                 messageContainer.className = "message-container";
+                 
+                 const profileLink = document.createElement("a");
+                 profileLink.href = `/profile/${data.sender_id}`;
+                 
+                 const profilePic = document.createElement("img");
+                 profilePic.className = "message-profile-pic";
+                 profilePic.src = `/static/users/${data.sender_id}.png`;
+                 profilePic.alt = data.username;
+                 profilePic.onerror = function() {
+                     this.src = "/static/123.png";
+                 };
+                 
+                 profileLink.appendChild(profilePic);
+                 messageContainer.appendChild(profileLink);
+                 
+                 const messageContent = document.createElement("div");
+                 messageContent.className = "message-content";
+                 
+                 const messageText = document.createElement("p");
+                 messageText.innerHTML = `<a href="/profile/${data.sender_id}"><strong>${data.username}</strong></a> (${data.timestamp}):<br>${data.text}`;
+                 
+                 messageContent.appendChild(messageText);
+                 messageContainer.appendChild(messageContent);
+                 
+                 if (messagesContainer) {
+                     messagesContainer.appendChild(messageContainer);
+                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                 }
+             });
+             
+             socket.on("connect_error", (error) => {
+                 console.error("WebSocket connection error:", error);
+             });
+         });
+     </script>
+     <script>
+         document.addEventListener("DOMContentLoaded", () => {
+             const messagesContainer = document.getElementById("messages");
+             let lastMessageCount = 0;
+             
+             async function fetchMessages() {
+                 try {
+                     const response = await fetch("/get_messages");
+                     const messages = await response.json();
+                     
+                     if (messages.length > lastMessageCount) {
+                         messagesContainer.innerHTML = "";
+                         
+                         messages.forEach(message => {
+                             const messageContainer = document.createElement("div");
+                             messageContainer.className = "message-container";
+                             
+                             const profileLink = document.createElement("a");
+                             profileLink.href = `/profile/${message.sender_id}`;
+                             
+                             const profilePic = document.createElement("img");
+                             profilePic.className = "message-profile-pic";
+                             profilePic.src = `/static/users/${message.sender_id}.png`;
+                             profilePic.alt = message.username;
+                             profilePic.onerror = function() {
+                                 this.src = "/static/123.png";
+                             };
+                             
+                             profileLink.appendChild(profilePic);
+                             messageContainer.appendChild(profileLink);
+                             
+                             const messageContent = document.createElement("div");
+                             messageContent.className = "message-content";
+                             
+                             const messageText = document.createElement("p");
+                             messageText.innerHTML = `<a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br>${message.text}`;
+                             
+                             messageContent.appendChild(messageText);
+                             messageContainer.appendChild(messageContent);
+                             
+                             messagesContainer.appendChild(messageContainer);
+                         });
+                         
+                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                         lastMessageCount = messages.length;
+                     }
+                 } catch (error) {
+                     console.error("Error fetching messages:", error);
+                 }
+             }
+             
+             setInterval(fetchMessages, 2000);
+             
+             fetchMessages();
+         });
+     </script>
    </body>
 </html>

@@ -129,6 +129,7 @@ class User(db.Model):
         lazy=True,
     )
     suggestions = db.relationship("Suggestion", backref="sender", lazy=True)
+    issues = db.relationship("Issue", backref="sender", lazy=True)
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -155,6 +156,15 @@ class Suggestion(db.Model):
         db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
     )
     completed = db.Column(db.Boolean, default=False)
+
+class Issue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    issue_text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(
+        db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
+    )
+    resolved = db.Column(db.Boolean, default=False)
 
 if not os.path.exists("messages.db"):
     with app.app_context():
@@ -356,6 +366,7 @@ def send_private(recipient_id):
             },
             room=f"user_{recipient_id}",
         )
+    
     return redirect(url_for("private_chat", user_id=recipient_id))
 
 @app.route("/register", methods=["GET", "POST"])
@@ -441,6 +452,18 @@ def admin_dashboard():
         .order_by(Suggestion.timestamp.desc())
         .all()
     )
+    issues = (
+        db.session.query(
+            Issue.id.label("id"),
+            User.username.label("sender"),
+            Issue.issue_text.label("text"),
+            Issue.timestamp.label("timestamp"),
+            Issue.resolved.label("resolved"),
+        )
+        .join(User, Issue.sender_id == User.id)
+        .order_by(Issue.timestamp.desc())
+        .all()
+    )
     user_images = get_user_images()
     return render_template(
         "admin_dashboard.html",
@@ -448,6 +471,7 @@ def admin_dashboard():
         public_messages=public_messages,
         private_messages=private_messages,
         suggestions=suggestions,
+        issues=issues,
         user=user,
         user_images=user_images
     )
@@ -531,6 +555,64 @@ def complete_suggestion(id):
     suggestion.completed = True
     db.session.commit()
     return ("", 204)
+
+@app.route("/issues")
+@login_required
+def issues():
+    current_user = User.query.get(session["user_id"])
+    issues = Issue.query.order_by(Issue.timestamp.asc()).all()
+    user_images = get_user_images()
+    return render_template("issues.html", user=current_user, issues=issues, user_images=user_images)
+
+@app.route("/get_issues")
+@login_required
+def get_issues():
+    issues = Issue.query.order_by(Issue.timestamp).all()
+    data = [
+        {
+            "id": i.id,
+            "username": i.sender.username,
+            "text": i.issue_text,
+            "timestamp": i.timestamp.strftime("%Y-%m-%d %H:%M"),
+            "resolved": i.resolved,
+        }
+        for i in issues
+    ]
+    return jsonify(data)
+
+@app.route("/send_issue", methods=["POST"])
+@login_required
+def send_issue():
+    issue_text = request.form["issue"]
+    if issue_text.strip():
+        new_issue = Issue(
+            sender_id=session["user_id"], issue_text=issue_text
+        )
+        db.session.add(new_issue)
+        db.session.commit()
+    return redirect(url_for("issues"))
+
+@app.route("/resolve_issue/<int:id>", methods=["POST"])
+@login_required
+def resolve_issue(id):
+    user = User.query.get(session["user_id"])
+    if not user or user.username != "admin":
+        abort(402)
+    issue = Issue.query.get_or_404(id)
+    issue.resolved = True
+    db.session.commit()
+    return ("", 204)
+
+@app.route("/delete_issue/<int:issue_id>", methods=["POST"])
+@login_required
+def delete_issue(issue_id):
+    user = User.query.get(session["user_id"])
+    if not user or user.username != "admin":
+        abort(402)
+    issue = Issue.query.get_or_404(issue_id)
+    db.session.delete(issue)
+    db.session.commit()
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/profile/<int:user_id>")
 @login_required
