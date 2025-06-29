@@ -23,6 +23,43 @@
         window.currentUsername = {{ user.username | tojson }};
         window.otherUsername = {{ other_user.username | tojson }};
         window.userImages = {{ user_images | tojson }};
+        
+        let currentReplyToId = null;
+        
+        function replyToMessage(messageId, username, messageText) {
+            currentReplyToId = messageId;
+            document.getElementById('reply-to-id').value = messageId;
+            document.getElementById('reply-username').textContent = username;
+            document.getElementById('reply-text-preview').textContent = messageText;
+            document.getElementById('reply-input-container').classList.add('visible');
+            document.getElementById('messages').classList.add('with-reply');
+            document.getElementById('messagePlace').focus();
+        }
+        
+        function cancelReply() {
+            currentReplyToId = null;
+            document.getElementById('reply-to-id').value = '';
+            document.getElementById('reply-input-container').classList.remove('visible');
+            document.getElementById('messages').classList.remove('with-reply');
+            document.getElementById('messagePlace').focus();
+        }
+        
+        function scrollToMessage(messageId) {
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                messageElement.classList.add('highlighted');
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    messageElement.classList.remove('highlighted');
+                }, 2000);
+            }
+        }
+        
+        document.getElementById('form').addEventListener('submit', function() {
+            setTimeout(() => {
+                cancelReply();
+            }, 100);
+        });
       </script>
       <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -63,6 +100,7 @@
                 if (data.sender_id === window.otherUserId || data.recipient_id === window.otherUserId) {
                     const messageContainer = document.createElement("div");
                     messageContainer.className = "message-container";
+                    messageContainer.setAttribute("data-message-id", data.id);
                     
                     const isOwnMessage = data.sender_id === window.currentUserId;
                     
@@ -84,6 +122,19 @@
                     const messageContent = document.createElement("div");
                     messageContent.className = "message-content";
                     
+                    if (data.reply_to_text && data.reply_to_username) {
+                        const replyPreview = document.createElement("div");
+                        replyPreview.className = "reply-preview";
+                        replyPreview.onclick = function() {
+                            scrollToMessage(data.reply_to_id);
+                        };
+                        replyPreview.innerHTML = `
+                            <span class="reply-username">${data.reply_to_username}</span>: 
+                            <span class="reply-text">${data.reply_to_text}</span>
+                        `;
+                        messageContent.appendChild(replyPreview);
+                    }
+                    
                     const messageText = document.createElement("p");
                     const username = isOwnMessage ? "You" : window.otherUsername;
                     const profileUrl = isOwnMessage ? `/profile/${window.currentUserId}` : `/profile/${window.otherUserId}`;
@@ -92,6 +143,13 @@
                     
                     messageContent.appendChild(messageText);
                     messageContainer.appendChild(messageContent);
+                    
+                    const replyButton = document.createElement("button");
+                    replyButton.className = "reply-button";
+                    replyButton.onclick = function() {
+                        replyToMessage(data.id, username, data.text.length > 50 ? data.text.substring(0, 50) + "..." : data.text);
+                    };
+                    messageContainer.appendChild(replyButton);
                     
                     messagesContainer.appendChild(messageContainer);
                     
@@ -228,6 +286,7 @@
                         messages.forEach(message => {
                             const messageContainer = document.createElement("div");
                             messageContainer.className = "message-container";
+                            messageContainer.setAttribute("data-message-id", message.id);
                             
                             const isOwnMessage = message.sender_id === window.currentUserId;
                             
@@ -249,6 +308,20 @@
                             const messageContent = document.createElement("div");
                             messageContent.className = "message-content";
                             
+                            
+                            if (message.reply_to_text && message.reply_to_username) {
+                                const replyPreview = document.createElement("div");
+                                replyPreview.className = "reply-preview";
+                                replyPreview.onclick = function() {
+                                    scrollToMessage(message.reply_to_id);
+                                };
+                                replyPreview.innerHTML = `
+                                    <span class="reply-username">${message.reply_to_username}</span>: 
+                                    <span class="reply-text">${message.reply_to_text}</span>
+                                `;
+                                messageContent.appendChild(replyPreview);
+                            }
+                            
                             const messageText = document.createElement("p");
                             const username = isOwnMessage ? "You" : window.otherUsername;
                             const profileUrl = isOwnMessage ? `/profile/${window.currentUserId}` : `/profile/${window.otherUserId}`;
@@ -257,6 +330,14 @@
                             
                             messageContent.appendChild(messageText);
                             messageContainer.appendChild(messageContent);
+                            
+                                    
+                            const replyButton = document.createElement("button");
+                            replyButton.className = "reply-button";
+                            replyButton.onclick = function() {
+                                replyToMessage(message.id, username, message.text.length > 50 ? message.text.substring(0, 50) + "..." : message.text);
+                            };
+                            messageContainer.appendChild(replyButton);
                             
                             messagesContainer.appendChild(messageContainer);
                         });
@@ -324,37 +405,59 @@
             <div id="mainArea">
                <div id="messages">
                   {% for message in messages %}
-                  <div class="message-container">
+                  <div class="message-container" data-message-id="{{ message.id }}">
                     {% if message.sender_id == current_user_id %}
                     <a href="/profile/{{ user.id }}">
                     <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + user.id|string + '.png') if user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ user.username }}" />
                     </a>
                      <div class="message-content">
+                        {% if message.reply_to %}
+                        <div class="reply-preview" onclick="scrollToMessage({{ message.reply_to.id }})">
+                           <span class="reply-username">{{ message.reply_to.sender.username }}</span>: 
+                           <span class="reply-text">{{ message.reply_to.message_text }}</span>
+                        </div>
+                        {% endif %}
                         <p>
                            <a href="/profile/{{ user.id }}"><strong>You</strong></a> ({{ message.timestamp }}):<br>
                            {{ message.message_text }}
                         </p>
                      </div>
+                     <button class="reply-button" onclick="replyToMessage({{ message.id }}, 'You', '{{ message.message_text[:50] }}{% if message.message_text|length > 50 %}...{% endif %}')">Reply</button>
                      {% else %}
                      <a href="/profile/{{ other_user.id }}">
                       <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + other_user.id|string + '.png') if other_user.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ other_user.username }}" />
                       </a>
                       
                      <div class="message-content">
+                        {% if message.reply_to %}
+                        <div class="reply-preview" onclick="scrollToMessage({{ message.reply_to.id }})">
+                           <span class="reply-username">{{ message.reply_to.sender.username }}</span>: 
+                           <span class="reply-text">{{ message.reply_to.message_text }}</span>
+                        </div>
+                        {% endif %}
                         <p>
                            <a href="/profile/{{ other_user.id }}"><strong>{{ other_user.username }}</strong></a> ({{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br>
                            {{ message.message_text }}
                         </p>
                      </div>
+                     <button class="reply-button" onclick="replyToMessage({{ message.id }}, '{{ other_user.username }}', '{{ message.message_text[:50] }}{% if message.message_text|length > 50 %}...{% endif %}')">Reply</button>
                      {% endif %}
                   </div>
                   {% endfor %}
+               </div>
+               <div id="reply-input-container" class="reply-input-container">
+                  <div class="reply-info">
+                     Replying to: <span id="reply-username"></span>
+                     <div id="reply-text-preview"></div>
+                  </div>
+                  <button class="cancel-reply" onclick="cancelReply()">Cancel</button>
                </div>
                <form
                   id="form"
                   method="POST"
                   action="/send_private/{{ other_user.id }}"
                   >
+                  <input type="hidden" id="reply-to-id" name="reply_to_id" value="">
                   <input
                      id="messagePlace"
                      type="text"
@@ -387,10 +490,6 @@
          z-index: 9999;
          "
          />
-      
-        
-      
-      
    </body>
 </html>
 

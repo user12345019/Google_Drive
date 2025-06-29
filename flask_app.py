@@ -138,6 +138,8 @@ class Message(db.Model):
     timestamp = db.Column(
         db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
     )
+    reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
+    reply_to = db.relationship("Message", remote_side=[id], backref="replies")
 
 class PrivateMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -147,6 +149,8 @@ class PrivateMessage(db.Model):
     timestamp = db.Column(
         db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(timezone)
     )
+    reply_to_id = db.Column(db.Integer, db.ForeignKey("private_message.id"), nullable=True)
+    reply_to = db.relationship("PrivateMessage", remote_side=[id], backref="replies")
 
 class Suggestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -175,6 +179,22 @@ else:
         try:
             with db.engine.connect() as conn:
                 conn.execute(text("ALTER TABLE user ADD COLUMN last_seen DATETIME"))
+                conn.commit()
+        except Exception as e:
+        
+            pass
+        
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE message ADD COLUMN reply_to_id INTEGER"))
+                conn.commit()
+        except Exception as e:
+        
+            pass
+            
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE private_message ADD COLUMN reply_to_id INTEGER"))
                 conn.commit()
         except Exception as e:
         
@@ -210,10 +230,14 @@ def get_messages():
     messages = Message.query.order_by(Message.timestamp).all()
     messages_data = [
         {
-            "sender_id": message.sender.id,  # <--- Add this line
+            "id": message.id,
+            "sender_id": message.sender.id,
             "username": message.sender.username,
             "text": message.message_text,
             "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M"),
+            "reply_to_id": message.reply_to_id,
+            "reply_to_text": message.reply_to.message_text if message.reply_to else None,
+            "reply_to_username": message.reply_to.sender.username if message.reply_to else None,
         }
         for message in messages
     ]
@@ -242,10 +266,14 @@ def get_private_messages(user_id):
 
     messages_data = [
         {
+            "id": message.id,
             "sender_id": message.sender_id,
             "sender": message.sender.username,
             "text": message.message_text,
-            "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            "reply_to_id": message.reply_to_id,
+            "reply_to_text": message.reply_to.message_text if message.reply_to else None,
+            "reply_to_username": message.reply_to.sender.username if message.reply_to else None,
         }
         for message in messages
     ]
@@ -286,18 +314,27 @@ def private_chat(user_id):
 @login_required
 def send():
     message_text = request.form["message"]
+    reply_to_id = request.form.get("reply_to_id", type=int)
     if message_text.strip():
-        new_message = Message(sender_id=session["user_id"], message_text=message_text)
+        new_message = Message(
+            sender_id=session["user_id"], 
+            message_text=message_text,
+            reply_to_id=reply_to_id if reply_to_id else None
+        )
         db.session.add(new_message)
         db.session.commit()
         sender = User.query.get(session["user_id"])
         socketio.emit(
             "new_public_message",
             {
+                "id": new_message.id,
                 "sender_id": sender.id,
                 "username": sender.username,
                 "text": message_text,
                 "timestamp": new_message.timestamp.strftime("%Y-%m-%d %H:%M"),
+                "reply_to_id": new_message.reply_to_id,
+                "reply_to_text": new_message.reply_to.message_text if new_message.reply_to else None,
+                "reply_to_username": new_message.reply_to.sender.username if new_message.reply_to else None,
             },
         )
         users = User.query.filter(User.id != session["user_id"]).all()
@@ -327,11 +364,13 @@ def send():
 @login_required
 def send_private(recipient_id):
     message_text = request.form["message"]
+    reply_to_id = request.form.get("reply_to_id", type=int)
     if message_text.strip():
         new_message = PrivateMessage(
             sender_id=session["user_id"],
             recipient_id=recipient_id,
             message_text=message_text,
+            reply_to_id=reply_to_id if reply_to_id else None
         )
         db.session.add(new_message)
         db.session.commit()
@@ -340,11 +379,15 @@ def send_private(recipient_id):
             socketio.emit(
                 "new_private_message",
                 {
+                    "id": new_message.id,
                     "sender_id": sender.id,
                     "sender_username": sender.username,
                     "recipient_id": recipient_id,
                     "text": message_text,
                     "timestamp": new_message.timestamp.strftime("%Y-%m-%d %H:%M"),
+                    "reply_to_id": new_message.reply_to_id,
+                    "reply_to_text": new_message.reply_to.message_text if new_message.reply_to else None,
+                    "reply_to_username": new_message.reply_to.sender.username if new_message.reply_to else None,
                 },
                 room=f"user_{uid}",
             )
@@ -742,9 +785,29 @@ def handle_disconnect():
             'status': 'offline'
         }, broadcast=True)
 
+@app.route("/get_message/<int:message_id>")
+@login_required
+def get_message(message_id):
+    message = Message.query.get_or_404(message_id)
+    return jsonify({
+        "id": message.id,
+        "sender_id": message.sender.id,
+        "username": message.sender.username,
+        "text": message.message_text,
+        "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M"),
+    })
 
-
-
+@app.route("/get_private_message/<int:message_id>")
+@login_required
+def get_private_message(message_id):
+    message = PrivateMessage.query.get_or_404(message_id)
+    return jsonify({
+        "id": message.id,
+        "sender_id": message.sender_id,
+        "sender": message.sender.username,
+        "text": message.message_text,
+        "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+    })
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

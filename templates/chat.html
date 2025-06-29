@@ -58,21 +58,36 @@
             <div id="mainArea">
                <div id="messages">
                   {% for message in messages %}
-                  <div class="message-container">
+                  <div class="message-container" data-message-id="{{ message.id }}">
                      <a href="/profile/{{ message.sender.id }}">
                      <img class="message-profile-pic" src="{{ url_for('static', filename='users/' + message.sender.id|string + '.png') if message.sender.id|string + '.png' in user_images else url_for('static', filename='123.png') }}" alt="{{ message.sender.username }}" />
                      </a>
                      <div class="message-content">
+                        {% if message.reply_to %}
+                        <div class="reply-preview" onclick="scrollToMessage({{ message.reply_to.id }})">
+                           <span class="reply-username">{{ message.reply_to.sender.username }}</span>: 
+                           <span class="reply-text">{{ message.reply_to.message_text }}</span>
+                        </div>
+                        {% endif %}
                         <p>
                            <a href="/profile/{{ message.sender.id }}"><strong>{{ message.sender.username }}</strong></a> ({{
                            message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}):<br> {{
                            message.message_text }}
                         </p>
                      </div>
+                     <button class="reply-button" onclick="replyToMessage({{ message.id }}, '{{ message.sender.username }}', '{{ message.message_text[:50] }}{% if message.message_text|length > 50 %}...{% endif %}')">Reply</button>
                   </div>
                   {% endfor %}
                </div>
+               <div id="reply-input-container" class="reply-input-container">
+                  <div class="reply-info">
+                     Replying to: <span id="reply-username"></span>
+                     <div id="reply-text-preview"></div>
+                  </div>
+                  <button class="cancel-reply" onclick="cancelReply()">Cancel</button>
+               </div>
                <form id="form" method="POST" action="/send">
+                  <input type="hidden" id="reply-to-id" name="reply_to_id" value="">
                   <input id="messagePlace" type="text" name="message" placeholder="Type your message..." required autofocus />
                   <input id="sendButton" type="submit" value="Send" aria-label="Send Message" />
                </form>
@@ -112,6 +127,44 @@
          window.currentUserId = {{ user.id|tojson }};
          window.isAdmin = {% if user.username == "admin" %}true{% else %}false{% endif %};
          window.userImages = {{ user_images|tojson }};
+         
+         let currentReplyToId = null;
+         
+         function replyToMessage(messageId, username, messageText) {
+             currentReplyToId = messageId;
+             document.getElementById('reply-to-id').value = messageId;
+             document.getElementById('reply-username').textContent = username;
+             document.getElementById('reply-text-preview').textContent = messageText;
+             document.getElementById('reply-input-container').classList.add('visible');
+             document.getElementById('messages').classList.add('with-reply');
+             document.getElementById('messagePlace').focus();
+         }
+         
+         function cancelReply() {
+             currentReplyToId = null;
+             document.getElementById('reply-to-id').value = '';
+             document.getElementById('reply-input-container').classList.remove('visible');
+             document.getElementById('messages').classList.remove('with-reply');
+             document.getElementById('messagePlace').focus();
+         }
+         
+         function scrollToMessage(messageId) {
+             const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+             if (messageElement) {
+                 messageElement.classList.add('highlighted');
+                 messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 setTimeout(() => {
+                     messageElement.classList.remove('highlighted');
+                 }, 2000);
+             }
+         }
+         
+    
+         document.getElementById('form').addEventListener('submit', function() {
+             setTimeout(() => {
+                 cancelReply();
+             }, 100);
+         });
      </script>
       <script defer src="{{ url_for('static', filename='script.js') }}"></script>
       <script>
@@ -130,6 +183,7 @@
                  console.log("Received new public message:", data);
                  const messageContainer = document.createElement("div");
                  messageContainer.className = "message-container";
+                 messageContainer.setAttribute("data-message-id", data.id);
                  
                  const profileLink = document.createElement("a");
                  profileLink.href = `/profile/${data.sender_id}`;
@@ -148,11 +202,33 @@
                  const messageContent = document.createElement("div");
                  messageContent.className = "message-content";
                  
+          
+                 if (data.reply_to_text && data.reply_to_username) {
+                     const replyPreview = document.createElement("div");
+                     replyPreview.className = "reply-preview";
+                     replyPreview.onclick = function() {
+                         scrollToMessage(data.reply_to_id);
+                     };
+                     replyPreview.innerHTML = `
+                         <span class="reply-username">${data.reply_to_username}</span>: 
+                         <span class="reply-text">${data.reply_to_text}</span>
+                     `;
+                     messageContent.appendChild(replyPreview);
+                 }
+                 
                  const messageText = document.createElement("p");
                  messageText.innerHTML = `<a href="/profile/${data.sender_id}"><strong>${data.username}</strong></a> (${data.timestamp}):<br>${data.text}`;
                  
                  messageContent.appendChild(messageText);
                  messageContainer.appendChild(messageContent);
+                 
+        
+                 const replyButton = document.createElement("button");
+                 replyButton.className = "reply-button";
+                 replyButton.onclick = function() {
+                     replyToMessage(data.id, data.username, data.text.length > 50 ? data.text.substring(0, 50) + "..." : data.text);
+                 };
+                 messageContainer.appendChild(replyButton);
                  
                  if (messagesContainer) {
                      messagesContainer.appendChild(messageContainer);
@@ -181,6 +257,7 @@
                          messages.forEach(message => {
                              const messageContainer = document.createElement("div");
                              messageContainer.className = "message-container";
+                             messageContainer.setAttribute("data-message-id", message.id);
                              
                              const profileLink = document.createElement("a");
                              profileLink.href = `/profile/${message.sender_id}`;
@@ -199,11 +276,33 @@
                              const messageContent = document.createElement("div");
                              messageContent.className = "message-content";
                              
+                    
+                             if (message.reply_to_text && message.reply_to_username) {
+                                 const replyPreview = document.createElement("div");
+                                 replyPreview.className = "reply-preview";
+                                 replyPreview.onclick = function() {
+                                     scrollToMessage(message.reply_to_id);
+                                 };
+                                 replyPreview.innerHTML = `
+                                     <span class="reply-username">${message.reply_to_username}</span>: 
+                                     <span class="reply-text">${message.reply_to_text}</span>
+                                 `;
+                                 messageContent.appendChild(replyPreview);
+                             }
+                             
                              const messageText = document.createElement("p");
                              messageText.innerHTML = `<a href="/profile/${message.sender_id}"><strong>${message.username}</strong></a> (${message.timestamp}):<br>${message.text}`;
                              
                              messageContent.appendChild(messageText);
                              messageContainer.appendChild(messageContent);
+                             
+                        
+                             const replyButton = document.createElement("button");
+                             replyButton.className = "reply-button";
+                             replyButton.onclick = function() {
+                                 replyToMessage(message.id, message.username, message.text.length > 50 ? message.text.substring(0, 50) + "..." : message.text);
+                             };
+                             messageContainer.appendChild(replyButton);
                              
                              messagesContainer.appendChild(messageContainer);
                          });
